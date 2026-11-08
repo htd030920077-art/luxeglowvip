@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LuxeGlow - Bảng Quản Trị Admin Toàn Diện</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background-color: #060503; color: #f3f3f3; font-family: system-ui, -apple-system, sans-serif; }
+    .gold-box { border: 1px solid rgba(230, 185, 77, 0.35); background: #110d07; box-shadow: 0 4px 20px rgba(0,0,0,0.8); }
+    .btn-gold { background: linear-gradient(135deg, #f9d976 0%, #e6b94d 50%, #b8860b 100%); color: #1a1202; font-weight: 800; cursor: pointer; }
+    .btn-gold:active { transform: scale(0.97); }
+    .gold-text { background: linear-gradient(135deg, #fff2be 0%, #e6b94d 50%, #aa771c 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .modal-admin { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 16px; }
+  </style>
+</head>
+<body class="p-3 md:p-6 max-w-6xl mx-auto min-h-screen">
+
+  <!-- ================= MÀN HÌNH ĐĂNG NHẬP ADMIN ================= -->
+  <div id="adminAuthBox" class="max-w-md mx-auto mt-24 gold-box p-6 rounded-3xl space-y-4">
+    <div class="text-center space-y-1">
+      <div class="text-2xl font-black gold-text tracking-wider">LUXEGLOW MASTER ADMIN</div>
+      <div class="text-xs text-neutral-400">Trung Tâm Điều Hành & Giám Sát Hệ Thống</div>
+    </div>
+    <div>
+      <label class="text-xs text-neutral-400 block mb-1">Mật khẩu Admin:</label>
+      <input id="adminPin" type="password" placeholder="Nhập mật khẩu quản trị..." class="w-full bg-black/70 border border-[#e6b94d]/40 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none focus:border-[#ffd700]" />
+    </div>
+    <button onclick="loginAdmin()" class="w-full btn-gold py-2.5 rounded-xl text-sm uppercase">Đăng Nhập Quản Trị</button>
+  </div>
+
+  <!-- ================= BẢNG ĐIỀU HÀNH CHÍNH ================= -->
+  <div id="adminDashboard" class="hidden space-y-5">
+    
+    <!-- HEADER -->
+    <div class="gold-box p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl gold-box flex items-center justify-center font-black text-xl text-[#ffd700]">⚡</div>
+        <div>
+          <h1 class="text-lg font-black gold-text">LUXEGLOW CONTROL CENTER</h1>
+          <div class="text-xs text-neutral-400">Đã đồng bộ song song thời gian thực với trang người chơi index.html</div>
+        </div>
+      </div>
+      <div class="flex items-center space-x-2">
+        <span id="serverStatusBadge" class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-950/80 border border-emerald-500/50 text-emerald-400">Máy Chủ: Hoạt Động</span>
+        <button onclick="logoutAdmin()" class="px-3 py-1.5 rounded-xl bg-red-950/60 border border-red-500/40 text-red-300 text-xs font-bold hover:bg-red-900/60">Đăng Xuất</button>
+      </div>
+    </div>
+
+    <!-- TỔNG QUAN TÀI CHÍNH & THỐNG KÊ (IN / OUT / USERS) -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
+      <div class="gold-box p-3.5 rounded-2xl">
+        <div class="text-[11px] text-neutral-400">Tổng Thành Viên</div>
+        <div id="statTotalUsers" class="text-xl font-black text-white mt-0.5">0</div>
+        <div class="text-[9px] text-neutral-500 mt-0.5">Đã tạo tài khoản</div>
+      </div>
+      <div class="gold-box p-3.5 rounded-2xl">
+        <div class="text-[11px] text-neutral-400">Tổng Tiền Nạp (Vào)</div>
+        <div id="statTotalIn" class="text-xl font-black text-emerald-400 mt-0.5">0 đ</div>
+        <div class="text-[9px] text-neutral-500 mt-0.5">Đơn nạp đã duyệt</div>
+      </div>
+      <div class="gold-box p-3.5 rounded-2xl">
+        <div class="text-[11px] text-neutral-400">Tổng Tiền Rút (Ra)</div>
+        <div id="statTotalOut" class="text-xl font-black text-rose-400 mt-0.5">0 đ</div>
+        <div class="text-[9px] text-neutral-500 mt-0.5">Lệnh rút thành công</div>
+      </div>
+      <div class="gold-box p-3.5 rounded-2xl">
+        <div class="text-[11px] text-neutral-400">Lợi Nhuận Ròng (IN - OUT)</div>
+        <div id="statNetProfit" class="text-xl font-black text-[#ffd700] mt-0.5">0 đ</div>
+        <div class="text-[9px] text-neutral-500 mt-0.5">Số dư sàn thực tế</div>
+      </div>
+    </div>
+
+    <!-- THANH ĐIỀU HƯỚNG TÍNH NĂNG -->
+    <div class="flex flex-wrap gap-1.5 p-1.5 rounded-2xl gold-box text-xs">
+      <button id="nav-btn-withdraw" onclick="switchAdminSection('withdraw')" class="px-3.5 py-2 rounded-xl btn-gold">Duyệt Rút Tiền (<span id="countPendingWithdraw">0</span>)</button>
+      <button id="nav-btn-deposit" onclick="switchAdminSection('deposit')" class="px-3.5 py-2 rounded-xl bg-black/40 text-neutral-300">Duyệt Nạp Tiền (<span id="countPendingDeposit">0</span>)</button>
+      <button id="nav-btn-users" onclick="switchAdminSection('users')" class="px-3.5 py-2 rounded-xl bg-black/40 text-neutral-300">Quản Lý Hội Viên (<span id="navUserCount">0</span>)</button>
+      <button id="nav-btn-ip" onclick="switchAdminSection('ip')" class="px-3.5 py-2 rounded-xl bg-black/40 text-neutral-300">Soi IP & Trùng Lặp</button>
+      <button id="nav-btn-promo" onclick="switchAdminSection('promo')" class="px-3.5 py-2 rounded-xl bg-black/40 text-neutral-300">Tạo Giftcode & Voucher</button>
+      <button id="nav-btn-settings" onclick="switchAdminSection('settings')" class="px-3.5 py-2 rounded-xl bg-black/40 text-neutral-300">Cài Đặt Game & Server</button>
+    </div>
+
+    <!-- ================= SECTION 1: DUYỆT RÚT TIỀN ================= -->
+    <div id="sec-withdraw" class="space-y-3">
+      <div class="flex items-center justify-between">
+        <h2 class="text-sm font-black text-[#ffd700] uppercase">Danh Sách Lệnh Rút Chờ Duyệt</h2>
+        <span class="text-xs text-neutral-400">Đơn đã duyệt sẽ biến mất khỏi danh sách chờ</span>
+      </div>
+      <div id="adminWithdrawList" class="space-y-2.5"></div>
+    </div>
+
+    <!-- ================= SECTION 2: DUYỆT NẠP TIỀN ================= -->
+    <div id="sec-deposit" class="space-y-3 hidden">
+      <div class="flex items-center justify-between">
+        <h2 class="text-sm font-black text-[#ffd700] uppercase">Danh Sách Lệnh Nạp Chờ Duyệt (Kèm PIN & Seri)</h2>
+        <span class="text-xs text-neutral-400">Đơn đã duyệt sẽ biến mất khỏi danh sách chờ</span>
+      </div>
+      <div id="adminDepositList" class="space-y-2.5"></div>
+    </div>
+
+    <!-- ================= SECTION 3: QUẢN LÝ TẤT CẢ THÀNH VIÊN ================= -->
+    <div id="sec-users" class="space-y-3 hidden">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <h2 class="text-sm font-black text-[#ffd700] uppercase">Danh Sách Tất Cả Thành Viên</h2>
+        <div class="flex items-center space-x-2">
+          <input id="searchUserInput" onkeyup="filterUsersTable()" type="text" placeholder="Tìm theo SĐT người chơi..." class="bg-black/60 border border-[#e6b94d]/40 rounded-xl px-3 py-1.5 text-xs text-white outline-none" />
+        </div>
+      </div>
+      <div class="overflow-x-auto gold-box rounded-2xl">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-black/80 text-neutral-400 border-b border-[#e6b94d]/20">
+            <tr>
+              <th class="p-3">Số Điện Thoại</th>
+              <th class="p-3">Mật Khẩu</th>
+              <th class="p-3">Số Dư</th>
+              <th class="p-3">Tổng Nạp</th>
+              <th class="p-3">VIP</th>
+              <th class="p-3">Người Mời</th>
+              <th class="p-3">IP Đăng Ký</th>
+              <th class="p-3">Trạng Thái</th>
+              <th class="p-3 text-right">Thao Tác</th>
+            </tr>
+          </thead>
+          <tbody id="adminUsersTbody" class="divide-y divide-[#e6b94d]/10"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ================= SECTION 4: SOI IP & TÀI KHOẢN TRÙNG LẶP ================= -->
+    <div id="sec-ip" class="space-y-3 hidden">
+      <div class="flex items-center justify-between">
+        <h2 class="text-sm font-black text-[#ffd700] uppercase">Phát Hiện Gian Lận - Trùng Lặp Địa Chỉ IP</h2>
+        <span class="text-xs text-neutral-400">Tự động gom nhóm các số điện thoại dùng chung địa chỉ IP</span>
+      </div>
+      <div id="adminIpClusterList" class="space-y-3"></div>
+    </div>
+
+    <!-- ================= SECTION 5: TẠO GIFTCODE & VOUCHER ================= -->
+    <div id="sec-promo" class="space-y-4 hidden">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- FORM TẠO GIFTCODE -->
+        <div class="gold-box p-4 rounded-2xl space-y-3">
+          <h3 class="text-sm font-black text-[#ffd700] uppercase">Tạo Giftcode Mới (Cộng Tiền Ví)</h3>
+          <div>
+            <label class="text-xs text-neutral-400 block mb-1">Mã Giftcode (VD: TRIAN99K):</label>
+            <input id="inputNewCode" type="text" placeholder="Nhập mã code in hoa..." class="w-full bg-black/60 border border-[#e6b94d]/40 rounded-xl px-3 py-2 text-xs text-white uppercase" />
+          </div>
+          <div>
+            <label class="text-xs text-neutral-400 block mb-1">Số tiền thưởng (VNĐ):</label>
+            <input id="inputNewCodeAmount" type="number" placeholder="50000" class="w-full bg-black/60 border border-[#e6b94d]/40 rounded-xl px-3 py-2 text-xs text-white" />
+          </div>
+          <button onclick="handleCreateGiftcode()" class="w-full btn-gold py-2 rounded-xl text-xs uppercase font-bold">Thêm Giftcode Vào Hệ Thống</button>
+          
+          <div class="pt-2 border-t border-[#e6b94d]/20">
+            <div class="text-[11px] text-neutral-400 font-bold mb-1.5">DANH SÁCH GIFTCODE ĐANG HOẠT ĐỘNG:</div>
+            <div id="activeGiftcodeList" class="space-y-1.5 text-xs max-h-48 overflow-y-auto"></div>
+          </div>
+        </div>
+
+        <!-- FORM TẠO MÃ VOUCHER LẺ -->
+        <div class="gold-box p-4 rounded-2xl space-y-3">
+          <h3 class="text-sm font-black text-[#ffd700] uppercase">Tạo Mã Voucher Lẻ (Khách Nhập Trong App)</h3>
+          <div>
+            <label class="text-xs text-neutral-400 block mb-1">Mã Kích Hoạt Voucher (VD: LUXE99, SALE50):</label>
+            <input id="inputNewVoucherCode" type="text" placeholder="Mã kích hoạt voucher..." class="w-full bg-black/60 border border-[#e6b94d]/40 rounded-xl px-3 py-2 text-xs text-white uppercase" />
+          </div>
+          <div>
+            <label class="text-xs text-neutral-400 block mb-1">Gói Ưu Đãi Của Voucher:</label>
+            <select id="selectNewVoucherType" class="w-full bg-black/60 border border-[#e6b94d]/40 rounded-xl px-3 py-2 text-xs text-white">
+              <option value="DISCOUNT_99">⚡ Voucher Giảm 99% Mọi Đơn Nạp</option>
+              <option value="X2_DEPOSIT">🔥 Phiếu Nạp x2 Tiền Vào Ví</option>
+              <option value="DISCOUNT_50">💎 Voucher Giảm 50% Tiền Nạp</option>
+              <option value="BONUS_20">🎁 Phiếu Thưởng Thêm 20% Số Tiền Nạp</option>
+              <option value="DISCOUNT_30">✨ Voucher Giảm 30% Tiền Nạp</option>
+              <option value="X15_DEPOSIT">🚀 Phiếu Nạp x1.5 Tiền Vào Ví</option>
+            </select>
+          </div>
+          <button onclick="handleCreateClaimableVoucher()" class="w-full btn-gold py-2 rounded-xl text-xs uppercase font-bold">Phát Hành Mã Voucher</button>
+
+          <div class="pt-2 border-t border-[#e6b94d]/20">
+            <div class="text-[11px] text-neutral-400 font-bold mb-1.5">DANH SÁCH MÃ VOUCHER LẺ ĐANG PHÁT HÀNH:</div>
+            <div id="activeVoucherCodeList" class="space-y-1.5 text-xs max-h-48 overflow-y-auto"></div>
+          </div>
+        </div>
+
+        <!-- FORM TẶNG VOUCHER TRỰC TIẾP -->
+        <div class="gold-box p-4 rounded-2xl space-y-3 md:col-span-2">
+          <h3 class="text-sm font-black text-[#ffd700] uppercase">Tặng Trực Tiếp Voucher Vào Ví Thành Viên</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs text-neutral-400 block mb-1">Chọn Tài Khoản Cần Tặng:</label>
+              <select id="selectVoucherTargetUser" class="w-full bg-black/60 border border-[#e6b94d]/40 rounded-xl px-3 py-2 text-xs text-white"></select>
+            </div>
+            <div>
+              <label class="text-xs text-neutral-400 block mb-1">Loại Gói Voucher:</label>
+              <select id="selectVoucherType" class="w-full bg-black/60 border border-[#e6b94d]/40 rounded-xl px-3 py-2 text-xs text-white">
+                <option value="DISCOUNT_99">⚡ Voucher Giảm 99% Mọi Đơn Nạp</option>
+                <option value="X2_DEPOSIT">🔥 Phiếu Nạp x2 Tiền Vào Ví</option>
+                <option value="DISCOUNT_50">💎 Voucher Giảm 50% Tiền Nạp</option>
+                <option value="BONUS_20">🎁 Phiếu Thưởng Thêm 20% Số Tiền Nạp</option>
+                <option value="DISCOUNT_30">✨ Voucher Giảm 30% Tiền Nạp</option>
+                <option value="X15_DEPOSIT">🚀 Phiếu Nạp x1.5 Tiền Vào Ví</option>
+              </select>
+            </div>
+          </div>
+          <button onclick="handleGrantVoucher()" class="w-full btn-gold py-2 rounded-xl text-xs uppercase font-bold">Bắn Voucher Thẳng Vào Ví Hội Viên</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= SECTION 6: CÀI ĐẶT GAME & ĐÓNG/MỞ SERVER ================= -->
+    <div id="sec-settings" class="space-y-4 hidden">
+      <div class="gold-box p-5 rounded-2xl space-y-4">
+        <h3 class="text-sm font-black text-[#ffd700] uppercase">Công Tắc Vận Hành Máy Chủ & Cổng Rút</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- BẢO TRÌ SERVER -->
+          <div class="p-3.5 rounded-xl bg-black/50 border border-[#e6b94d]/30 space-y-2">
+            <div class="font-bold text-white text-xs flex items-center justify-between">
+              <span>Trạng Thái Máy Chủ (Server):</span>
+              <span id="serverToggleText" class="text-emerald-400 font-bold">Đang Mở</span>
+            </div>
+            <p class="text-[11px] text-neutral-400">Khi bật bảo trì, người chơi vào trang index.html sẽ bị chặn và thấy thông báo bảo trì máy chủ ngay lập tức.</p>
+            <button id="btnToggleServer" onclick="toggleServerMaintenance()" class="px-4 py-2 rounded-xl bg-red-900/60 border border-red-500/50 text-red-200 text-xs font-bold w-full">
+              Đóng Server (Bảo Trì)
+            </button>
+          </div>
+
+          <!-- MỞ / ĐÓNG RÚT TIỀN CƯỠNG CHẾ -->
+          <div class="p-3.5 rounded-xl bg-black/50 border border-[#e6b94d]/30 space-y-2">
+            <div class="font-bold text-white text-xs flex items-center justify-between">
+              <span>Cổng Rút Tiền Toàn Sàn:</span>
+              <span id="withdrawToggleText" class="text-emerald-400 font-bold">Đang Mở (Theo giờ)</span>
+            </div>
+            <p class="text-[11px] text-neutral-400">Có thể cưỡng chế mở hoặc đóng cổng rút tiền bất cứ lúc nào (bất chấp khung giờ quy định).</p>
+            <button id="btnToggleWithdraw" onclick="toggleWithdrawGateway()" class="px-4 py-2 rounded-xl bg-amber-900/60 border border-amber-500/50 text-amber-200 text-xs font-bold w-full">
+              Cưỡng Chế Đóng Cổng Rút Tiền
+            </button>
+          </div>
+        </div>
+
+        <!-- THÔNG SỐ GAME -->
+        <div class="pt-3 border-t border-[#e6b94d]/20 space-y-3">
+          <div class="text-xs font-bold text-[#ffd700] uppercase">Cấu Hình Thông Số Game & Quy Định Rút</div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+            <div>
+              <label class="text-neutral-400 block mb-1">Giờ bắt đầu cho rút (h sáng):</label>
+              <input id="cfgWithStartHour" type="number" class="w-full bg-black/60 border border-[#e6b94d]/40 rounded-xl px-3 py-1.5 text-white" />
+            </div>
+            <div>
+              <label class="text-neutral-400 block mb-1">Giờ kết thúc rút (h tối):</label>
+              <input id="cfgWithEndHour" type="number" class="w-full bg-black/60 border border-[#e6b94d]/40 rounded-xl px-3 py-1.5 text-white" />
+            </div>
+            <div>
+              <label class="text-neutral-400 block mb-1">Phí rút tiền (%):</label>
+              <input id="cfgWithFeePercent" type="number" class="w-full bg-black/60 border border-[#e6b94d]/40 rounded-xl px-3 py-1.5 text-white" />
+            </div>
+            <div>
+              <label class="text-neutral-400 block mb-1">Số tiền rút tối thiểu (VNĐ):</label>
+              <input id="cfgMinWithdraw" type="number" class="w-full bg-black/60 border border-[#e6b94d]/40 rounded-xl px-3 py-1.5 text-white" />
+            </div>
+            <div>
+              <label class="text-neutral-400 block mb-1">Hoa hồng F1 (%):</label>
+              <input id="cfgRefF1Percent" type="number" class="w-full bg-black/60 border border-[#e6b94d]/40 rounded-xl px-3 py-1.5 text-white" />
+            </div>
+            <div>
+              <label class="text-neutral-400 block mb-1">Hoa hồng F2 (%):</label>
+              <input id="cfgRefF2Percent" type="number" class="w-full bg-black/60 border border-[#e6b94d]/40 rounded-xl px-3 py-1.5 text-white" />
+            </div>
+          </div>
+          <button onclick="handleSaveGameConfig()" class="btn-gold px-5 py-2.5 rounded-xl text-xs uppercase font-bold">Lưu Cấu Hình Thông Số</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- POPUP 1: CHỈNH SỬA THÔNG TIN THÀNH VIÊN -->
+  <div id="modalEditUser" class="modal-admin hidden">
+    <div class="w-full max-w-md gold-box rounded-3xl p-5 space-y-3.5 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-[#e6b94d]/20 pb-2">
+        <span class="font-bold text-sm text-[#ffd700]">Chỉnh Sửa Thông Tin Thành Viên</span>
+        <button onclick="closeModalAdmin('modalEditUser')" class="text-lg text-neutral-400">&times;</button>
+      </div>
+      <div class="space-y-2.5 text-xs">
+        <div>
+          <label class="text-neutral-400 block mb-0.5">Số Điện Thoại:</label>
+          <input id="editUserPhone" type="text" readonly class="w-full bg-neutral-900 border border-[#e6b94d]/30 rounded-xl px-3 py-2 text-white font-mono opacity-80" />
+        </div>
+        <div>
+          <label class="text-neutral-400 block mb-0.5">Mật khẩu mới:</label>
+          <input id="editUserPass" type="text" placeholder="Nhập mật khẩu mới..." class="w-full bg-black/60 border border-[#e6b94d]/40 rounded-xl px-3 py-2 text-white" />
+        </div>
+        <div>
+          <label class="text-neutral-400 block mb-0.5">Số Dư Khả Dụng (VNĐ):</label>
+          <input id="editUserBalance" type="number" class="w-full bg-black/60 border border-[#e6b94d]/40 rounded-xl px-3 py-2 text-white font-bold" />
+        </div>
+        <div>
+          <label class="text-neutral-400 block mb-0.5">Tổng Tiền Nạp (VNĐ):</label>
+          <input id="editUserTotalDep" type="number" class="w-full bg-black/60 border border-[#e6b94d]/40 rounded-xl px-3 py-2 text-white font-bold" />
+        </div>
+      </div>
+      <div class="flex space-x-2 pt-2">
+        <button onclick="closeModalAdmin('modalEditUser')" class="flex-1 py-2 rounded-xl bg-neutral-800 text-neutral-300 text-xs">Hủy</button>
+        <button onclick="saveEditUser()" class="flex-1 btn-gold py-2 rounded-xl text-xs uppercase font-bold">Lưu Thay Đổi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- POPUP 2: XEM CÂY TUYẾN DƯỚI -->
+  <div id="modalUserRefs" class="modal-admin hidden">
+    <div class="w-full max-w-lg gold-box rounded-3xl p-5 space-y-3.5 shadow-2xl max-h-[85vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-[#e6b94d]/20 pb-2">
+        <div>
+          <span class="font-bold text-sm text-[#ffd700]">Cây Tuyến Dưới Của Hội Viên</span>
+          <div id="modalRefUserPhone" class="text-xs text-neutral-400 font-mono">0988888888</div>
+        </div>
+        <button onclick="closeModalAdmin('modalUserRefs')" class="text-lg text-neutral-400">&times;</button>
+      </div>
+      <div id="modalUserRefsContent" class="space-y-2 text-xs"></div>
+    </div>
+  </div>
+
+  <!-- POPUP 3: TRẢ MÃ THẺ CÀO KHI DUYỆT RÚT -->
+  <div id="modalCardWithdrawApprove" class="modal-admin hidden">
+    <div class="w-full max-w-md gold-box rounded-3xl p-5 space-y-3.5 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-[#e6b94d]/20 pb-2">
+        <span class="font-bold text-sm text-[#ffd700]">Nhập Mã PIN & Seri Thẻ Cào Cho Hội Viên</span>
+        <button onclick="closeModalAdmin('modalCardWithdrawApprove')" class="text-lg text-neutral-400">&times;</button>
+      </div>
+      <div class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-200">
+        Khách đang yêu cầu đổi thẻ cào. Hãy nhập mã thẻ và số seri bên dưới, hệ thống sẽ gửi thẳng vào mục Lịch sử rút của khách!
+      </div>
+      <input id="cardApprovePhone" type="hidden" />
+      <input id="cardApproveWId" type="hidden" />
+      <div class="space-y-2.5 text-xs">
+        <div>
+          <label class="text-neutral-400 block mb-0.5">Mã Thẻ (PIN):</label>
+          <input id="cardApprovePin" type="text" placeholder="Nhập mã thẻ PIN..." class="w-full bg-black/60 border border-[#e6b94d]/40 rounded-xl px-3 py-2 text-white font-mono" />
+        </div>
+        <div>
+          <label class="text-neutral-400 block mb-0.5">Số Seri:</label>
+          <input id="cardApproveSerial" type="text" placeholder="Nhập số seri..." class="w-full bg-black/60 border border-[#e6b94d]/40 rounded-xl px-3 py-2 text-white font-mono" />
+        </div>
+      </div>
+      <div class="flex space-x-2 pt-2">
+        <button onclick="closeModalAdmin('modalCardWithdrawApprove')" class="flex-1 py-2 rounded-xl bg-neutral-800 text-neutral-300 text-xs">Hủy</button>
+        <button onclick="submitCardWithdrawApproval()" class="flex-1 btn-gold py-2 rounded-xl text-xs uppercase font-bold">Xác Nhận & Trả Mã Thẻ</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var ADMIN_PASS = "td123";
+    var USERS_KEY = 'luxeglow_users_database_v3';
+    var CONFIG_KEY = 'luxeglow_system_config_v3';
+
+    var GROUP_BOT_TOKEN = "9229749289:AAFy5TKnYZk4hoD2cdNHFkFxr5GkwKiDOAU";
+    var GROUP_CHAT_IDS = ["-1003871117419"];
+
+    var defaultSystemConfig = {
+      serverMaintenance: false,
+      maintenanceMessage: "Hệ thống đang bảo trì nâng cấp máy chủ cGMP ASEAN. Quý khách vui lòng quay lại sau ít phút!",
+      forceWithdrawClose: false,
+      withStartHour: 7,
+      withEndHour: 22,
+      withFeePercent: 7,
+      minWithdraw: 30000,
+      refF1Percent: 15,
+      refF2Percent: 5,
+      giftcodes: {
+        "LUXEGLOW2026": 20000,
+        "CGMP88K": 88000,
+        "TANTHU50K": 50000,
+        "VIP888": 100000
+      },
+      voucherCodes: {
+        "GIAM99": "DISCOUNT_99",
+        "NHANDOIVIP": "X2_DEPOSIT",
+        "GIAM50": "DISCOUNT_50"
+      }
+    };
+
+    function showAdminToast(msg) {
+      var box = document.getElementById('adminToastBox');
+      if (!box) {
+        box = document.createElement('div');
+        box.id = 'adminToastBox';
+        box.className = 'fixed top-5 left-1/2 -translate-x-1/2 z-[999999] px-4 py-2 rounded-xl bg-amber-400 text-black font-extrabold text-xs shadow-2xl transition-all';
+        document.body.appendChild(box);
+      }
+      box.innerText = msg;
+      box.style.display = 'block';
+      setTimeout(function() {
+        if (box) box.style.display = 'none';
+      }, 2500);
+    }
+
+    function formatVND(n) {
+      return Number(n || 0).toLocaleString('vi-VN') + " đ";
+    }
+
+    function maskPhone(p) {
+      if (!p || p.length < 7) return p;
+      return p.substring(0, 3) + "****" + p.substring(p.length - 3);
+    }
+
+    function getVipLevel(dep) {
+      dep = Number(dep || 0);
+      if (dep >= 5000000) return 5;
+      if (dep >= 1500000) return 4;
+      if (dep >= 800000) return 3;
+      if (dep >= 300000) return 2;
+      if (dep >= 150000) return 1;
+      return 0;
+    }
+
+    function getUsers() {
+      try {
+        var str = localStorage.getItem(USERS_KEY);
+        return str ? JSON.parse(str) : {};
+      } catch (e) { return {}; }
+    }
+
+    function saveUsers(users) {
+      try {
+        localStorage.setItem(USERS_KEY, JSON.stringify(users));
+      } catch (e) {}
+    }
+
+    function getSysConfig() {
+      try {
+        var str = localStorage.getItem(CONFIG_KEY);
+        if (!str) {
+          localStorage.setItem(CONFIG_KEY, JSON.stringify(defaultSystemConfig));
+          return defaultSystemConfig;
+        }
+        var parsed = JSON.parse(str);
+        if (typeof parsed.giftcodes === 'undefined') parsed.giftcodes = defaultSystemConfig.giftcodes;
+        if (typeof parsed.voucherCodes === 'undefined') parsed.voucherCodes = defaultSystemConfig.voucherCodes;
+        return parsed;
+      } catch (e) {
+        return defaultSystemConfig;
+      }
+    }
+
+    function saveSysConfig(cfg) {
+      try {
+        localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg));
+      } catch (e) {}
+    }
+
+    // AUTH ADMIN
+    function loginAdmin() {
+      var pin = (document.getElementById('adminPin').value || "").trim();
+      if (pin === ADMIN_PASS) {
+        document.getElementById('adminAuthBox').classList.add('hidden');
+        document.getElementById('adminDashboard').classList.remove('hidden');
+        loadAllAdminData();
+      } else {
+        showAdminToast("❌ Sai mật khẩu Admin! Vui lòng thử lại.");
+      }
+    }
+
+    function logoutAdmin() {
+      document.getElementById('adminPin').value = '';
+      document.getElementById('adminAuthBox').classList.remove('hidden');
+      document.getElementById('adminDashboard').classList.add('hidden');
+    }
+
+    function switchAdminSection(sec) {
+      var sections = ['withdraw', 'deposit', 'users', 'ip', 'promo', 'settings'];
+      for (var i = 0; i < sections.length; i++) {
+        var s = sections[i];
+        var el = document.getElementById('sec-' + s);
+        var btn = document.getElementById('nav-btn-' + s);
+        if (el) {
+          if (s === sec) el.classList.remove('hidden');
+          else el.classList.add('hidden');
+        }
+        if (btn) {
+          if (s === sec) {
+            btn.className = "px-3.5 py-2 rounded-xl btn-gold";
+          } else {
+            btn.className = "px-3.5 py-2 rounded-xl bg-black/40 text-neutral-300";
+          }
+        }
+      }
+    }
+
+    function closeModalAdmin(id) {
+      var m = document.getElementById(id);
+      if (m) m.classList.add('hidden');
+    }
+
+    // ================= TẢI VÀ ĐỒNG BỘ TOÀN BỘ DỮ LIỆU =================
+    function loadAllAdminData() {
+      var users = getUsers();
+      var cfg = getSysConfig();
+
+      var totalUsers = 0;
+      var totalIn = 0;
+      var totalOut = 0;
+      var pendingWithdrawCount = 0;
+      var pendingDepositCount = 0;
+
+      for (var phone in users) {
+        totalUsers++;
+        var u = users[phone];
+
+        var deps = u.depositHist || [];
+        for (var i = 0; i < deps.length; i++) {
+          if (deps[i].status === 'APPROVED') {
+            totalIn += Number(deps[i].amount || 0);
+          } else if (deps[i].status === 'PENDING') {
+            pendingDepositCount++;
+          }
+        }
+
+        var withs = u.withdrawHist || [];
+        for (var j = 0; j < withs.length; j++) {
+          if (withs[j].status === 'APPROVED') {
+            totalOut += Number(withs[j].amount || 0);
+          } else if (withs[j].status === 'PENDING') {
+            pendingWithdrawCount++;
+          }
+        }
+      }
+
+      var statUsers = document.getElementById('statTotalUsers');
+      var statIn = document.getElementById('statTotalIn');
+      var statOut = document.getElementById('statTotalOut');
+      var statNet = document.getElementById('statNetProfit');
+
+      if (statUsers) statUsers.innerText = totalUsers;
+      if (statIn) statIn.innerText = formatVND(totalIn);
+      if (statOut) statOut.innerText = formatVND(totalOut);
+      if (statNet) statNet.innerText = formatVND(totalIn - totalOut);
+
+      var pWithBadge = document.getElementById('countPendingWithdraw');
+      var pDepBadge = document.getElementById('countPendingDeposit');
+      var navUsersBadge = document.getElementById('navUserCount');
+      if (pWithBadge) pWithBadge.innerText = pendingWithdrawCount;
+      if (pDepBadge) pDepBadge.innerText = pendingDepositCount;
+      if (navUsersBadge) navUsersBadge.innerText = totalUsers;
+
+      var sBadge = document.getElementById('serverStatusBadge');
+      var sToggleText = document.getElementById('serverToggleText');
+      var sBtn = document.getElementById('btnToggleServer');
+      if (cfg.serverMaintenance) {
+        if (sBadge) { sBadge.innerText = "Máy Chủ: BẢO TRÌ"; sBadge.className = "px-3 py-1 rounded-full text-xs font-bold bg-red-950 border border-red-500/50 text-red-300"; }
+        if (sToggleText) { sToggleText.innerText = "Đang Bảo Trì (Đóng)"; sToggleText.className = "text-red-400 font-bold"; }
+        if (sBtn) { sBtn.innerText = "Mở Lại Server"; sBtn.className = "px-4 py-2 rounded-xl bg-emerald-900/60 border border-emerald-500/50 text-emerald-200 text-xs font-bold w-full"; }
+      } else {
+        if (sBadge) { sBadge.innerText = "Máy Chủ: Hoạt Động"; sBadge.className = "px-3 py-1 rounded-full text-xs font-bold bg-emerald-950/80 border border-emerald-500/50 text-emerald-400"; }
+        if (sToggleText) { sToggleText.innerText = "Đang Mở"; sToggleText.className = "text-emerald-400 font-bold"; }
+        if (sBtn) { sBtn.innerText = "Đóng Server (Bảo Trì)"; sBtn.className = "px-4 py-2 rounded-xl bg-red-900/60 border border-red-500/50 text-red-200 text-xs font-bold w-full"; }
+      }
+
+      var wToggleText = document.getElementById('withdrawToggleText');
+      var wBtn = document.getElementById('btnToggleWithdraw');
+      if (cfg.forceWithdrawClose) {
+        if (wToggleText) { wToggleText.innerText = "Đang Cưỡng Chế Đóng"; wToggleText.className = "text-red-400 font-bold"; }
+        if (wBtn) { wBtn.innerText = "Mở Cổng Rút Lại"; wBtn.className = "px-4 py-2 rounded-xl bg-emerald-900/60 border border-emerald-500/50 text-emerald-200 text-xs font-bold w-full"; }
+      } else {
+        if (wToggleText) { wToggleText.innerText = "Đang Mở (Theo giờ)"; wToggleText.className = "text-emerald-400 font-bold"; }
+        if (wBtn) { wBtn.innerText = "Cưỡng Chế Đóng Cổng Rút Tiền"; wBtn.className = "px-4 py-2 rounded-xl bg-amber-900/60 border border-amber-500/50 text-amber-200 text-xs font-bold w-full"; }
+      }
+
+      document.getElementById('cfgWithStartHour').value = cfg.withStartHour || 7;
+      document.getElementById('cfgWithEndHour').value = cfg.withEndHour || 22;
+      document.getElementById('cfgWithFeePercent').value = cfg.withFeePercent || 7;
+      document.getElementById('cfgMinWithdraw').value = cfg.minWithdraw || 30000;
+      document.getElementById('cfgRefF1Percent').value = cfg.refF1Percent || 15;
+      document.getElementById('cfgRefF2Percent').value = cfg.refF2Percent || 5;
+
+      renderAdminWithdrawList(users);
+      renderAdminDepositList(users);
+      renderAdminUsersTable(users);
+      renderAdminIpClusters(users);
+      renderAdminPromos(cfg, users);
+    }
+
+    // ================= RENDER & XỬ LÝ LỆNH RÚT =================
+    function renderAdminWithdrawList(users) {
+      var wList = document.getElementById('adminWithdrawList');
+      var html = '';
+      var hasPending = false;
+
+      for (var phone in users) {
+        var u = users[phone];
+        var arr = u.withdrawHist || [];
+        for (var i = 0; i < arr.length; i++) {
+          var item = arr[i];
+          if (item.status !== 'PENDING') continue;
+
+          hasPending = true;
+          var isCard = item.method && item.method.indexOf("Đổi Thẻ Cào") !== -1;
+
+          var approveBtn = isCard
+            ? '<button onclick="openCardWithdrawApprove(\'' + phone + '\', \'' + item.id + '\')" class="btn-gold px-3.5 py-1.5 rounded-xl text-xs uppercase font-black">Nhập Mã Thẻ & Duyệt</button>'
+            : '<button onclick="approveWithdrawDirect(\'' + phone + '\', \'' + item.id + '\')" class="btn-gold px-3.5 py-1.5 rounded-xl text-xs uppercase font-black">Duyệt & Bắn Bot Nhóm</button>';
+
+          html += '<div class="gold-box p-3.5 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs mb-2">' +
+            '<div class="space-y-1">' +
+              '<div class="flex items-center space-x-2">' +
+                '<span class="font-bold text-white text-sm">👤 ' + phone + ' (' + maskPhone(phone) + ')</span>' +
+                '<span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[10px] font-bold">Mã: ' + item.id + '</span>' +
+                '<span class="text-neutral-500 text-[10px]">' + item.time + '</span>' +
+                '<span class="px-2 py-0.5 rounded bg-yellow-950 text-yellow-300 text-[10px] font-bold">CHỜ DUYỆT</span>' +
+              '</div>' +
+              '<div class="text-[#ffd700] font-bold text-xs">🏦 ' + item.method + '</div>' +
+              '<div class="text-neutral-300 text-xs">' +
+                'Rút: <b class="text-white">' + formatVND(item.amount) + '</b> · Phí: <b>' + formatVND(item.fee) + '</b> · Thực trả: <b class="text-emerald-400">' + formatVND(item.amount - (item.fee || 0)) + '</b>' +
+              '</div>' +
+            '</div>' +
+            '<div>' + approveBtn + '</div>' +
+          '</div>';
+        }
+      }
+      wList.innerHTML = hasPending ? html : '<div class="text-center py-6 text-neutral-500 text-xs">🎉 Không có lệnh rút tiền nào đang chờ duyệt!</div>';
+    }
+
+    function approveWithdrawDirect(phone, wId) {
+      var users = getUsers();
+      if (!users[phone] || !users[phone].withdrawHist) return;
+
+      var targetItem = null;
+      for (var i = 0; i < users[phone].withdrawHist.length; i++) {
+        if (users[phone].withdrawHist[i].id === wId) {
+          users[phone].withdrawHist[i].status = 'APPROVED';
+          targetItem = users[phone].withdrawHist[i];
+          break;
+        }
+      }
+
+      if (targetItem) {
+        if (users[phone].transactions) {
+          for (var t = 0; t < users[phone].transactions.length; t++) {
+            if (users[phone].transactions[t].id === wId) {
+              users[phone].transactions[t].status = 'APPROVED';
+              break;
+            }
+          }
+        }
+        saveUsers(users);
+
+        sendGroupWithdrawAlert(phone, targetItem);
+        showAdminToast("✅ Đã duyệt lệnh " + wId + "! Đơn đã biến mất khỏi danh sách chờ.");
+        loadAllAdminData();
+      }
+    }
+
+    function openCardWithdrawApprove(phone, wId) {
+      document.getElementById('cardApprovePhone').value = phone;
+      document.getElementById('cardApproveWId').value = wId;
+      document.getElementById('cardApprovePin').value = '';
+      document.getElementById('cardApproveSerial').value = '';
+      document.getElementById('modalCardWithdrawApprove').classList.remove('hidden');
+    }
+
+    function submitCardWithdrawApproval() {
+      var phone = document.getElementById('cardApprovePhone').value;
+      var wId = document.getElementById('cardApproveWId').value;
+      var pin = (document.getElementById('cardApprovePin').value || "").trim();
+      var serial = (document.getElementById('cardApproveSerial').value || "").trim();
+
+      if (!pin) {
+        showAdminToast("⚠️ Vui lòng nhập Mã thẻ PIN để trả cho người chơi!");
+        return;
+      }
+
+      var users = getUsers();
+      if (!users[phone] || !users[phone].withdrawHist) return;
+
+      var targetItem = null;
+      for (var i = 0; i < users[phone].withdrawHist.length; i++) {
+        if (users[phone].withdrawHist[i].id === wId) {
+          users[phone].withdrawHist[i].status = 'APPROVED';
+          users[phone].withdrawHist[i].cardPin = pin;
+          users[phone].withdrawHist[i].cardSerial = serial;
+          targetItem = users[phone].withdrawHist[i];
+          break;
+        }
+      }
+
+      if (targetItem) {
+        if (users[phone].transactions) {
+          for (var t = 0; t < users[phone].transactions.length; t++) {
+            if (users[phone].transactions[t].id === wId) {
+              users[phone].transactions[t].status = 'APPROVED';
+              users[phone].transactions[t].cardPin = pin;
+              users[phone].transactions[t].cardSerial = serial;
+              break;
+            }
+          }
+        }
+        saveUsers(users);
+        closeModalAdmin('modalCardWithdrawApprove');
+        sendGroupWithdrawAlert(phone, targetItem);
+        showAdminToast("✅ Đã trả mã thẻ cào & duyệt đơn " + wId + " thành công!");
+        loadAllAdminData();
+      }
+    }
+
+    function sendGroupWithdrawAlert(phone, item) {
+      var now = new Date();
+      var utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+      var vnTime = new Date(utc + (7 * 3600 * 1000));
+      var timeStr = vnTime.toLocaleString('vi-VN', { hour12: false });
+
+      var msg = "🎉 <b>[LuxeGlow] LỆNH RÚT TIỀN THÀNH CÔNG!</b>\n" +
+        "━━━━━━━━━━━━━━━━━━━━━━\n" +
+        "👑 <b>Hội viên:</b> <code>" + maskPhone(phone) + "</code>\n" +
+        "💵 <b>Số tiền rút:</b> <b>" + formatVND(item.amount) + "</b>\n" +
+        "💸 <b>Thực nhận:</b> <b>" + formatVND(item.amount - (item.fee || Math.floor(item.amount * 0.07))) + "</b>\n" +
+        "🏦 <b>Kênh thanh toán:</b> " + (item.method || "Ngân Hàng 24/7") + "\n" +
+        "🆔 <b>Mã giao dịch:</b> <code>" + item.id + "</code>\n" +
+        "⏰ <b>Thời gian:</b> " + timeStr + "\n" +
+        "✅ <b>Trạng thái:</b> <b>ĐÃ THANH TOÁN THÀNH CÔNG</b>";
+
+      for (var i = 0; i < GROUP_CHAT_IDS.length; i++) {
+        var gId = GROUP_CHAT_IDS[i];
+        if (!gId) continue;
+        fetch("https://api.telegram.org/bot" + GROUP_BOT_TOKEN + "/sendMessage", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ chat_id: gId, text: msg, parse_mode: "HTML" })
+        }).catch(function(e) {});
+      }
+    }
+
+    // ================= RENDER & XỬ LÝ LỆNH NẠP =================
+    function renderAdminDepositList(users) {
+      var dList = document.getElementById('adminDepositList');
+      var html = '';
+      var hasPending = false;
+
+      for (var phone in users) {
+        var u = users[phone];
+        var arr = u.depositHist || [];
+        for (var j = 0; j < arr.length; j++) {
+          var dep = arr[j];
+          if (dep.status !== 'PENDING') continue;
+
+          hasPending = true;
+          var cardCodeDisplay = '';
+          if (dep.pin || dep.serial) {
+            cardCodeDisplay = '<div class="p-2 rounded bg-black/60 border border-emerald-500/30 text-xs font-mono mt-1 text-emerald-300">' +
+              '🏷️ <b>Mã Thẻ (PIN):</b> <span class="text-white select-all">' + (dep.pin || "N/A") + '</span> | <b>Seri:</b> <span class="text-white select-all">' + (dep.serial || "N/A") + '</span>' +
+            '</div>';
+          }
+
+          html += '<div class="gold-box p-3.5 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs mb-2">' +
+            '<div class="space-y-1">' +
+              '<div class="flex items-center space-x-2">' +
+                '<span class="font-bold text-white text-sm">👤 ' + phone + '</span>' +
+                '<span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 text-[10px] font-bold">Mã: ' + dep.id + '</span>' +
+                '<span class="text-neutral-500 text-[10px]">' + dep.time + '</span>' +
+                '<span class="px-2 py-0.5 rounded bg-yellow-950 text-yellow-300 text-[10px] font-bold">CHỜ XÁC NHẬN</span>' +
+              '</div>' +
+              '<div class="text-neutral-300 font-bold">💳 ' + dep.method + '</div>' +
+              '<div class="text-xs">Số tiền cộng ví: <b class="text-emerald-400 font-bold">+' + formatVND(dep.amount) + '</b></div>' +
+              cardCodeDisplay +
+            '</div>' +
+            '<div>' +
+              '<button onclick="approveDepositDirect(\'' + phone + '\', \'' + dep.id + '\')" class="btn-gold px-3.5 py-1.5 rounded-xl text-xs uppercase font-black">Xác Nhận & Cộng Ví</button>' +
+            '</div>' +
+          '</div>';
+        }
+      }
+      dList.innerHTML = hasPending ? html : '<div class="text-center py-6 text-neutral-500 text-xs">🎉 Không có lệnh nạp tiền nào đang chờ duyệt!</div>';
+    }
+
+    function approveDepositDirect(phone, dId) {
+      var users = getUsers();
+      if (!users[phone] || !users[phone].depositHist) return;
+
+      var targetDep = null;
+      for (var i = 0; i < users[phone].depositHist.length; i++) {
+        var dep = users[phone].depositHist[i];
+        if (dep.id === dId && dep.status !== 'APPROVED') {
+          dep.status = 'APPROVED';
+          targetDep = dep;
+          users[phone].balance = (users[phone].balance || 0) + dep.amount;
+          users[phone].totalDeposited = (users[phone].totalDeposited || 0) + dep.amount;
+          break;
+        }
+      }
+
+      if (targetDep) {
+        if (users[phone].transactions) {
+          for (var t = 0; t < users[phone].transactions.length; t++) {
+            if (users[phone].transactions[t].id === dId) {
+              users[phone].transactions[t].status = 'APPROVED';
+              break;
+            }
+          }
+        }
+
+        var invPhone = users[phone].inviter;
+        if (invPhone && users[invPhone]) {
+          var cfg = getSysConfig();
+          var bonusF1 = Math.floor(targetDep.amount * (cfg.refF1Percent / 100));
+          if (bonusF1 > 0) {
+            users[invPhone].balance = (users[invPhone].balance || 0) + bonusF1;
+            users[invPhone].dailyF1Count = (users[invPhone].dailyF1Count || 0) + 1;
+            users[invPhone].weeklyTeamCount = (users[invPhone].weeklyTeamCount || 0) + 1;
+            if (!users[invPhone].transactions) users[invPhone].transactions = [];
+            users[invPhone].transactions.unshift({
+              id: "COMM" + Math.floor(1000 + Math.random() * 9000),
+              type: "Hoa hồng F1 (" + phone + " nạp)",
+              time: "Vừa xong",
+              amount: bonusF1,
+              sign: "+",
+              status: "APPROVED"
+            });
+          }
+        }
+
+        saveUsers(users);
+        showAdminToast("✅ Đã duyệt đơn " + dId + "! Cộng +" + formatVND(targetDep.amount) + " và xóa khỏi danh sách chờ.");
+        loadAllAdminData();
+      }
+    }
+
+    // ================= QUẢN LÝ THÀNH VIÊN =================
+    function renderAdminUsersTable(users) {
+      var tbody = document.getElementById('adminUsersTbody');
+      var html = '';
+
+      for (var phone in users) {
+        var u = users[phone];
+        var vip = getVipLevel(u.totalDeposited);
+        var statusBadge = u.isLocked 
+          ? '<span class="px-2 py-0.5 rounded bg-red-950 text-red-300 font-bold text-[10px]">ĐÃ KHÓA</span>'
+          : '<span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 font-bold text-[10px]">Hoạt động</span>';
+
+        html += '<tr>' +
+          '<td class="p-3 font-mono font-bold text-white">' + phone + '</td>' +
+          '<td class="p-3 font-mono text-neutral-400">' + (u.password || "******") + '</td>' +
+          '<td class="p-3 font-bold text-[#ffd700]">' + formatVND(u.balance) + '</td>' +
+          '<td class="p-3 text-neutral-300">' + formatVND(u.totalDeposited) + '</td>' +
+          '<td class="p-3 font-bold text-[#f5d77f]">VIP ' + vip + '</td>' +
+          '<td class="p-3 font-mono text-neutral-400">' + (u.inviter || "Gốc") + '</td>' +
+          '<td class="p-3 font-mono text-xs text-neutral-300">' + (u.registerIp || "127.0.0.1") + '</td>' +
+          '<td class="p-3">' + statusBadge + '</td>' +
+          '<td class="p-3 text-right space-x-1 whitespace-nowrap">' +
+            '<button onclick="openModalEditUser(\'' + phone + '\')" class="px-2 py-1 rounded bg-[#e6b94d]/20 text-[#f5d77f] font-bold text-[10px] hover:bg-[#e6b94d]/30">Sửa</button>' +
+            '<button onclick="openModalUserRefs(\'' + phone + '\')" class="px-2 py-1 rounded bg-blue-900/40 text-blue-300 font-bold text-[10px] hover:bg-blue-800/50">Tuyến Dưới</button>' +
+            '<button onclick="toggleLockUser(\'' + phone + '\')" class="px-2 py-1 rounded bg-amber-900/40 text-amber-300 font-bold text-[10px] hover:bg-amber-800/50">' + (u.isLocked ? 'Mở Khóa' : 'Khóa') + '</button>' +
+            '<button onclick="deleteUser(\'' + phone + '\')" class="px-2 py-1 rounded bg-red-900/60 text-red-300 font-bold text-[10px] hover:bg-red-800/80">Xóa</button>' +
+          '</td>' +
+        '</tr>';
+      }
+      tbody.innerHTML = html || '<tr><td colspan="9" class="p-4 text-center text-neutral-500">Chưa có thành viên nào.</td></tr>';
+    }
+
+    function filterUsersTable() {
+      var kw = (document.getElementById('searchUserInput').value || "").toLowerCase().trim();
+      var rows = document.querySelectorAll('#adminUsersTbody tr');
+      for (var i = 0; i < rows.length; i++) {
+        var text = rows[i].innerText.toLowerCase();
+        rows[i].style.display = text.indexOf(kw) !== -1 ? '' : 'none';
+      }
+    }
+
+    function openModalEditUser(phone) {
+      var users = getUsers();
+      var u = users[phone];
+      if (!u) return;
+
+      document.getElementById('editUserPhone').value = phone;
+      document.getElementById('editUserPass').value = u.password || '';
+      document.getElementById('editUserBalance').value = u.balance || 0;
+      document.getElementById('editUserTotalDep').value = u.totalDeposited || 0;
+      document.getElementById('modalEditUser').classList.remove('hidden');
+    }
+
+    function saveEditUser() {
+      var phone = document.getElementById('editUserPhone').value;
+      var pass = (document.getElementById('editUserPass').value || "").trim();
+      var bal = Number(document.getElementById('editUserBalance').value || 0);
+      var tot = Number(document.getElementById('editUserTotalDep').value || 0);
+
+      var users = getUsers();
+      if (!users[phone]) return;
+
+      if (pass) users[phone].password = pass;
+      users[phone].balance = bal;
+      users[phone].totalDeposited = tot;
+      saveUsers(users);
+
+      closeModalAdmin('modalEditUser');
+      showAdminToast("✅ Đã cập nhật thông tin hội viên " + phone);
+      loadAllAdminData();
+    }
+
+    function toggleLockUser(phone) {
+      var users = getUsers();
+      if (!users[phone]) return;
+      users[phone].isLocked = !users[phone].isLocked;
+      saveUsers(users);
+      showAdminToast((users[phone].isLocked ? "🔒 Đã khóa tài khoản " : "🔓 Đã mở khóa tài khoản ") + phone);
+      loadAllAdminData();
+    }
+
+    function deleteUser(phone) {
+      var users = getUsers();
+      if (users[phone]) {
+        delete users[phone];
+        saveUsers(users);
+        showAdminToast("🗑️ Đã xóa tài khoản " + phone);
+        loadAllAdminData();
+      }
+    }
+
+    function openModalUserRefs(phone) {
+      var users = getUsers();
+      var u = users[phone];
+      if (!u) return;
+
+      document.getElementById('modalRefUserPhone').innerText = "Hội viên: " + phone;
+      var c = document.getElementById('modalUserRefsContent');
+
+      var f1List = [];
+      for (var p in users) {
+        if (users[p].inviter === phone) {
+          f1List.push(users[p]);
+        }
+      }
+
+      var f2List = [];
+      for (var i = 0; i < f1List.length; i++) {
+        var f1Phone = f1List[i].phone;
+        for (var p2 in users) {
+          if (users[p2].inviter === f1Phone) {
+            f2List.push({ user: users[p2], viaF1: f1Phone });
+          }
+        }
+      }
+
+      var html = '<div class="space-y-3">';
+      html += '<div class="p-3 rounded-2xl bg-black/60 border border-[#e6b94d]/20">' +
+        '<div class="font-bold text-[#ffd700] mb-1">TỔNG KẾT ĐỘI NHÓM:</div>' +
+        '<div class="grid grid-cols-2 gap-2 text-neutral-300">' +
+          '<div>Tuyến F1 trực tiếp: <b>' + f1List.length + ' người</b></div>' +
+          '<div>Tuyến F2 gián tiếp: <b>' + f2List.length + ' người</b></div>' +
+        '</div>' +
+      '</div>';
+
+      html += '<div class="font-bold text-white uppercase text-xs">Danh Sách Tuyến F1:</div>';
+      if (f1List.length === 0) {
+        html += '<div class="text-neutral-500 py-2">Chưa có thành viên F1 nào.</div>';
+      } else {
+        for (var j = 0; j < f1List.length; j++) {
+          var f = f1List[j];
+          var isPaid = (f.totalDeposited || 0) > 0;
+          html += '<div class="p-2.5 rounded-xl bg-black/40 border border-[#e6b94d]/15 flex justify-between items-center">' +
+            '<div><b class="text-white">' + f.phone + '</b><div class="text-[10px] text-neutral-400">Số dư: ' + formatVND(f.balance) + '</div></div>' +
+            '<div>' + (isPaid ? '<span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 font-bold text-[10px]">Đã Nạp: ' + formatVND(f.totalDeposited) + '</span>' : '<span class="px-2 py-0.5 rounded bg-neutral-800 text-neutral-400 text-[10px]">Chưa Nạp</span>') + '</div>' +
+          '</div>';
+        }
+      }
+
+      html += '<div class="font-bold text-white uppercase text-xs pt-2">Danh Sách Tuyến F2:</div>';
+      if (f2List.length === 0) {
+        html += '<div class="text-neutral-500 py-2">Chưa có thành viên F2 nào.</div>';
+      } else {
+        for (var k = 0; k < f2List.length; k++) {
+          var f2 = f2List[k].user;
+          var via = f2List[k].viaF1;
+          var isPaid2 = (f2.totalDeposited || 0) > 0;
+          html += '<div class="p-2.5 rounded-xl bg-black/40 border border-[#e6b94d]/15 flex justify-between items-center">' +
+            '<div><b class="text-white">' + f2.phone + '</b><div class="text-[10px] text-neutral-400">Giới thiệu qua F1: <code>' + via + '</code></div></div>' +
+            '<div>' + (isPaid2 ? '<span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 font-bold text-[10px]">Đã Nạp: ' + formatVND(f2.totalDeposited) + '</span>' : '<span class="px-2 py-0.5 rounded bg-neutral-800 text-neutral-400 text-[10px]">Chưa Nạp</span>') + '</div>' +
+          '</div>';
+        }
+      }
+      html += '</div>';
+
+      c.innerHTML = html;
+      document.getElementById('modalUserRefs').classList.remove('hidden');
+    }
+
+    // ================= SOI IP =================
+    function renderAdminIpClusters(users) {
+      var c = document.getElementById('adminIpClusterList');
+      var ipMap = {};
+
+      for (var phone in users) {
+        var ip = users[phone].registerIp || "127.0.0.1";
+        if (!ipMap[ip]) ipMap[ip] = [];
+        ipMap[ip].push(users[phone]);
+      }
+
+      var html = '';
+      for (var ipKey in ipMap) {
+        var list = ipMap[ipKey];
+        var isDuplicate = list.length > 1;
+
+        var border = isDuplicate ? 'border-red-500/50 bg-red-950/20' : 'border-[#e6b94d]/20 bg-black/40';
+        var badge = isDuplicate ? '<span class="px-2.5 py-0.5 rounded bg-red-900 text-red-200 font-black text-[10px] animate-pulse">⚠️ PHÁT HIỆN ' + list.length + ' TÀI KHOẢN TRÙNG IP</span>'
+                                : '<span class="px-2.5 py-0.5 rounded bg-neutral-800 text-neutral-400 text-[10px]">Duy nhất 1 tài khoản</span>';
+
+        html += '<div class="p-3.5 rounded-2xl border ' + border + ' space-y-2 text-xs mb-2">' +
+          '<div class="flex items-center justify-between">' +
+            '<div class="font-mono font-bold text-white text-sm">🌐 Địa chỉ IP: <span class="text-[#ffd700]">' + ipKey + '</span></div>' +
+            '<div>' + badge + '</div>' +
+          '</div>' +
+          '<div class="grid grid-cols-1 md:grid-cols-2 gap-2">';
+
+        for (var i = 0; i < list.length; i++) {
+          var u = list[i];
+          html += '<div class="p-2 rounded-xl bg-black/60 border border-[#e6b94d]/20 flex justify-between items-center">' +
+            '<div><b>' + u.phone + '</b><div class="text-[10px] text-neutral-400">Số dư: ' + formatVND(u.balance) + '</div></div>' +
+            '<div class="space-x-1">' +
+              '<button onclick="toggleLockUser(\'' + u.phone + '\')" class="px-2 py-1 rounded bg-red-900/60 text-red-300 font-bold text-[10px]">' + (u.isLocked ? 'Mở Khóa' : 'Khóa Ngay') + '</button>' +
+            '</div>' +
+          '</div>';
+        }
+        html += '</div></div>';
+      }
+
+      c.innerHTML = html || '<div class="text-neutral-500 text-xs py-4">Chưa có dữ liệu IP.</div>';
+    }
+
+    // ================= TẠO GIFTCODE & VOUCHER =================
+    var voucherLabels = {
+      "DISCOUNT_99": "⚡ Giảm 99% Mọi Đơn Nạp",
+      "X2_DEPOSIT": "🔥 Nạp x2 Tiền Vào Ví",
+      "DISCOUNT_50": "💎 Giảm 50% Tiền Nạp",
+      "BONUS_20": "🎁 Thưởng Thêm 20% Nạp",
+      "DISCOUNT_30": "✨ Giảm 30% Tiền Nạp",
+      "X15_DEPOSIT": "🚀 Nạp x1.5 Tiền Vào Ví"
+    };
+
+    function renderAdminPromos(cfg, users) {
+      var gBox = document.getElementById('activeGiftcodeList');
+      var codes = cfg.giftcodes || {};
+      var html = '';
+      for (var code in codes) {
+        html += '<div class="p-2 rounded-xl bg-black/60 border border-[#e6b94d]/20 flex justify-between items-center mb-1">' +
+          '<div><b class="text-[#ffd700] font-mono">' + code + '</b>: <span class="text-emerald-400 font-bold">+' + formatVND(codes[code]) + '</span></div>' +
+          '<button onclick="deleteGiftcode(\'' + code + '\')" class="px-2.5 py-1 rounded bg-red-950 border border-red-500/40 text-red-300 hover:text-red-200 text-xs font-bold">Xóa Mã</button>' +
+        '</div>';
+      }
+      gBox.innerHTML = html || '<div class="text-neutral-500">Chưa có mã Giftcode.</div>';
+
+      var vBox = document.getElementById('activeVoucherCodeList');
+      var vCodes = cfg.voucherCodes || {};
+      var vHtml = '';
+      for (var vc in vCodes) {
+        var vType = vCodes[vc];
+        var vText = voucherLabels[vType] || vType;
+        vHtml += '<div class="p-2 rounded-xl bg-black/60 border border-[#e6b94d]/20 flex justify-between items-center mb-1">' +
+          '<div><b class="text-[#ffd700] font-mono">' + vc + '</b>: <span class="text-amber-300 font-semibold">' + vText + '</span></div>' +
+          '<button onclick="deleteVoucherCode(\'' + vc + '\')" class="px-2.5 py-1 rounded bg-red-950 border border-red-500/40 text-red-300 hover:text-red-200 text-xs font-bold">Xóa Mã</button>' +
+        '</div>';
+      }
+      vBox.innerHTML = vHtml || '<div class="text-neutral-500">Chưa có mã Voucher lẻ.</div>';
+
+      var sel = document.getElementById('selectVoucherTargetUser');
+      var selHtml = '<option value="">-- Chọn số điện thoại hội viên --</option>';
+      for (var p in users) {
+        selHtml += '<option value="' + p + '">' + p + ' (' + formatVND(users[p].balance) + ')</option>';
+      }
+      sel.innerHTML = selHtml;
+    }
+
+    function handleCreateGiftcode() {
+      var code = (document.getElementById('inputNewCode').value || "").trim().toUpperCase();
+      var amount = Number(document.getElementById('inputNewCodeAmount').value || 0);
+
+      if (!code || amount <= 0) {
+        showAdminToast("⚠️ Vui lòng nhập Mã code và Số tiền thưởng hợp lệ!");
+        return;
+      }
+
+      var cfg = getSysConfig();
+      if (!cfg.giftcodes) cfg.giftcodes = {};
+      cfg.giftcodes[code] = amount;
+      saveSysConfig(cfg);
+
+      document.getElementById('inputNewCode').value = '';
+      document.getElementById('inputNewCodeAmount').value = '';
+      showAdminToast("✅ Đã tạo Giftcode [" + code + "] trị giá " + formatVND(amount));
+      loadAllAdminData();
+    }
+
+    function deleteGiftcode(code) {
+      var cfg = getSysConfig();
+      if (cfg.giftcodes && typeof cfg.giftcodes[code] !== 'undefined') {
+        delete cfg.giftcodes[code];
+        saveSysConfig(cfg);
+        showAdminToast("🗑️ Đã xóa vĩnh viễn Giftcode: " + code);
+        loadAllAdminData();
+      }
+    }
+
+    function handleCreateClaimableVoucher() {
+      var vCode = (document.getElementById('inputNewVoucherCode').value || "").trim().toUpperCase();
+      var vType = document.getElementById('selectNewVoucherType').value;
+
+      if (!vCode) {
+        showAdminToast("⚠️ Vui lòng nhập Mã kích hoạt voucher!");
+        return;
+      }
+
+      var cfg = getSysConfig();
+      if (!cfg.voucherCodes) cfg.voucherCodes = {};
+      cfg.voucherCodes[vCode] = vType;
+      saveSysConfig(cfg);
+
+      document.getElementById('inputNewVoucherCode').value = '';
+      showAdminToast("✅ Đã phát hành mã Voucher lẻ [" + vCode + "]!");
+      loadAllAdminData();
+    }
+
+    function deleteVoucherCode(vCode) {
+      var cfg = getSysConfig();
+      if (cfg.voucherCodes && typeof cfg.voucherCodes[vCode] !== 'undefined') {
+        delete cfg.voucherCodes[vCode];
+        saveSysConfig(cfg);
+        showAdminToast("🗑️ Đã xóa mã Voucher: " + vCode);
+        loadAllAdminData();
+      }
+    }
+
+    function handleGrantVoucher() {
+      var targetPhone = document.getElementById('selectVoucherTargetUser').value;
+      var vType = document.getElementById('selectVoucherType').value;
+
+      if (!targetPhone) {
+        showAdminToast("⚠️ Vui lòng chọn số điện thoại hội viên!");
+        return;
+      }
+
+      var users = getUsers();
+      if (!users[targetPhone]) return;
+
+      if (!users[targetPhone].vouchers) users[targetPhone].vouchers = [];
+      users[targetPhone].vouchers.push(vType);
+      saveUsers(users);
+
+      showAdminToast("✅ Đã bắn thẳng Voucher vào ví hội viên " + targetPhone);
+      loadAllAdminData();
+    }
+
+    // ================= CÀI ĐẶT MÁY CHỦ & THÔNG SỐ GAME =================
+    function toggleServerMaintenance() {
+      var cfg = getSysConfig();
+      cfg.serverMaintenance = !cfg.serverMaintenance;
+      saveSysConfig(cfg);
+      showAdminToast(cfg.serverMaintenance ? "🛑 Đã BẬT bảo trì (Đóng server)!" : "✅ Đã MỞ LẠI Server cho người chơi!");
+      loadAllAdminData();
+    }
+
+    function toggleWithdrawGateway() {
+      var cfg = getSysConfig();
+      cfg.forceWithdrawClose = !cfg.forceWithdrawClose;
+      saveSysConfig(cfg);
+      showAdminToast(cfg.forceWithdrawClose ? "🛑 Đã CƯỠNG CHẾ ĐÓNG cổng rút tiền!" : "✅ Đã MỞ LẠI cổng rút tiền bình thường!");
+      loadAllAdminData();
+    }
+
+    function handleSaveGameConfig() {
+      var cfg = getSysConfig();
+      cfg.withStartHour = Number(document.getElementById('cfgWithStartHour').value || 7);
+      cfg.withEndHour = Number(document.getElementById('cfgWithEndHour').value || 22);
+      cfg.withFeePercent = Number(document.getElementById('cfgWithFeePercent').value || 7);
+      cfg.minWithdraw = Number(document.getElementById('cfgMinWithdraw').value || 30000);
+      cfg.refF1Percent = Number(document.getElementById('cfgRefF1Percent').value || 15);
+      cfg.refF2Percent = Number(document.getElementById('cfgRefF2Percent').value || 5);
+
+      saveSysConfig(cfg);
+      showAdminToast("✅ Đã lưu cấu hình thông số game thành công!");
+      loadAllAdminData();
+    }
+
+    // LẮNG NGHE SỰ KIỆN STORAGE ĐỂ TỰ ĐỘNG ĐỒNG BỘ TỨC THÌ TỪ TRANG INDEX.HTML
+    window.addEventListener('storage', function(e) {
+      if (e.key === USERS_KEY || e.key === CONFIG_KEY) {
+        var dash = document.getElementById('adminDashboard');
+        if (dash && !dash.classList.contains('hidden')) {
+          loadAllAdminData();
+        }
+      }
+    });
+
+    window.addEventListener('DOMContentLoaded', function() {
+      var cfg = getSysConfig();
+      saveSysConfig(cfg);
+    });
+  </script>
+</body>
+</html>
