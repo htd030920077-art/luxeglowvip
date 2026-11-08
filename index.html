@@ -1,0 +1,2589 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>LuxeGlow Capital - Dược Mỹ Phẩm cGMP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #050402;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      color: #f5f5f5;
+    }
+
+    #appRoot {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      max-width: 480px;
+      height: 100%;
+      margin: 0 auto;
+      background: radial-gradient(circle at 50% 0%, #1a1508 0%, #0c0a05 45%, #050402 100%);
+      position: relative;
+    }
+
+    #mainScrollArea {
+      flex: 1 1 0%;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 12px 14px 24px 14px;
+    }
+
+    #bottomNavContainer {
+      flex-shrink: 0;
+      width: 100%;
+      height: 64px;
+      background: #0f0c07;
+      border-top: 1.5px solid rgba(230, 185, 77, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      box-shadow: 0 -4px 25px rgba(0, 0, 0, 0.9);
+      z-index: 1000;
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    .font-luxury {
+      font-family: 'Cinzel', serif;
+    }
+    .gold-box {
+      border: 1px solid rgba(230, 185, 77, 0.35);
+      background: #0f0c07;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.7);
+    }
+    .gold-text {
+      background: linear-gradient(135deg, #fff2be 0%, #e6b94d 50%, #aa771c 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .btn-gold {
+      background: linear-gradient(135deg, #f9d976 0%, #e6b94d 50%, #b8860b 100%);
+      color: #1a1202;
+      box-shadow: 0 3px 12px rgba(230, 185, 77, 0.35);
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .btn-gold:active {
+      transform: scale(0.96);
+    }
+    .btn-gold-outline {
+      border: 1px solid #e6b94d;
+      color: #f5d77f;
+      background: rgba(230, 185, 77, 0.08);
+      cursor: pointer;
+    }
+    .btn-locked {
+      background: #141414 !important;
+      color: #666666 !important;
+      border: 1px solid #262626 !important;
+      cursor: not-allowed !important;
+      box-shadow: none !important;
+      pointer-events: none;
+    }
+    .btn-ready-gold {
+      background: linear-gradient(135deg, #fef08a 0%, #eab308 50%, #a16207 100%) !important;
+      color: #171103 !important;
+      font-weight: 800 !important;
+      border: 1px solid #fef08a !important;
+      box-shadow: 0 0 14px rgba(234, 179, 8, 0.6) !important;
+    }
+    .timer-badge {
+      background: rgba(230, 185, 77, 0.12);
+      border: 1px solid rgba(230, 185, 77, 0.4);
+      color: #ffd700;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.88);
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .auth-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 4, 2, 0.96);
+      z-index: 999999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      overflow-y: auto;
+    }
+    .auth-overlay.hidden {
+      display: none !important;
+    }
+
+    .nav-btn {
+      flex: 1;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      outline: none;
+      cursor: pointer;
+      padding: 0;
+      margin: 0;
+    }
+  </style>
+
+  <script>
+    var audioCtx = null;
+    function getAudioContext() {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+      } catch (e) {}
+      return audioCtx;
+    }
+
+    function playSfx(type) {
+      try {
+        var ctx = getAudioContext();
+        if (!ctx) return;
+        var now = ctx.currentTime;
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        if (type === 'click') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(600, now);
+          osc.frequency.exponentialRampToValueAtTime(280, now + 0.05);
+          gain.gain.setValueAtTime(0.1, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.05);
+          osc.start(now);
+          osc.stop(now + 0.05);
+        } else if (type === 'coin') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(987.77, now);
+          osc.frequency.setValueAtTime(1318.51, now + 0.07);
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.22);
+          osc.start(now);
+          osc.stop(now + 0.22);
+        }
+      } catch (e) {}
+    }
+
+    function onImgErr(img, pkgId) {
+      if (img.dataset.hasFallback) return;
+      img.dataset.hasFallback = "true";
+      var label = pkgId ? ("LuxeGlow " + pkgId.toUpperCase()) : "LuxeGlow cGMP";
+      var svg = "<svg xmlns='http://www.w3.org/2000/svg' width='400' height='260' viewBox='0 0 400 260'>" +
+        "<rect width='100%' height='100%' fill='#120f08'/>" +
+        "<circle cx='200' cy='110' r='38' fill='none' stroke='#e6b94d' stroke-width='2' opacity='0.7'/>" +
+        "<text x='200' y='175' fill='#f5d77f' font-size='13' font-family='sans-serif' font-weight='bold' text-anchor='middle'>" + label + "</text>" +
+        "<text x='200' y='198' fill='#8c794e' font-size='10' font-family='sans-serif' text-anchor='middle'>cGMP ASEAN CERTIFIED</text>" +
+      "</svg>";
+      img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+    }
+
+    function formatVND(n) {
+      return Number(n || 0).toLocaleString('vi-VN') + " đ";
+    }
+
+    function padZero(n) {
+      return n < 10 ? '0' + n : n;
+    }
+
+    function maskPhone(p) {
+      if (!p || p.length < 7) return p;
+      return p.substring(0, 3) + "****" + p.substring(p.length - 3);
+    }
+
+    function getVNTime() {
+      var now = new Date();
+      var utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+      return new Date(utc + (7 * 3600 * 1000));
+    }
+
+    function getVNDateString(vnDate) {
+      return vnDate.getFullYear() + "-" + padZero(vnDate.getMonth() + 1) + "-" + padZero(vnDate.getDate());
+    }
+
+    function getVNWeekString(vnDate) {
+      var d = new Date(vnDate.getTime());
+      var day = d.getDay();
+      var diff = d.getDate() - day + (day === 0 ? -6 : 1);
+      var mon = new Date(d.setDate(diff));
+      return mon.getFullYear() + "-W" + padZero(Math.ceil(mon.getDate() / 7));
+    }
+
+    function getVipLevel(totalDep) {
+      var dep = Number(totalDep || 0);
+      if (dep >= 5000000) return 5;
+      if (dep >= 1500000) return 4;
+      if (dep >= 800000) return 3;
+      if (dep >= 300000) return 2;
+      if (dep >= 150000) return 1;
+      return 0;
+    }
+    var vipDailySalaries = [0, 5000, 10000, 50000, 70000, 150000];
+
+    var packagesData = {
+      g1: { id: 'g1', name: 'Mặt Nạ Tràm Trà Bio-Cell', price: 150000, dailyReturn: 19500, totalDays: 90, img: 'https://images.unsplash.com/photo-1596755389378-c31d21fd1273?auto=format&fit=crop&w=600&q=80', desc: 'Màng sợi vi sinh Bio-Cellulose làm dịu mụn cấp tốc và phục hồi da.' },
+      g2: { id: 'g2', name: 'Xịt Khoáng Nước Băng Glacier', price: 300000, dailyReturn: 39000, totalDays: 90, img: 'https://images.unsplash.com/photo-1616683693504-3ea7e9ad6fec?auto=format&fit=crop&w=600&q=80', desc: 'Khoáng sông băng Thụy Sĩ cấp ẩm sâu đa tầng trung bì 24h.' },
+      g3: { id: 'g3', name: 'Son Kem Lì Tinh Dầu Argan', price: 450000, dailyReturn: 58500, totalDays: 90, img: 'https://images.unsplash.com/photo-1586495777744-4413f21062fa?auto=format&fit=crop&w=600&q=80', desc: 'Màu son nhung mịn chiết xuất argan dưỡng ẩm, chống lão hóa môi.' },
+      g4: { id: 'g4', name: 'Serum Tế Bào Gốc Niacinamide', price: 750000, dailyReturn: 97500, totalDays: 90, img: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=600&q=80', desc: 'Niacinamide 12% & EGF cô đặc tái tạo cấu trúc da sáng khỏe.' },
+      g5: { id: 'g5', name: 'Kem Trẻ Hóa Retinol & Ngọc Trai', price: 1200000, dailyReturn: 156000, totalDays: 90, img: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=600&q=80', desc: 'Retinol bọc liposome kết hợp bột ngọc trai xóa mờ nếp nhăn.' },
+      g6: { id: 'g6', name: 'Ampoule Tinh Thể Vàng 24K', price: 1500000, dailyReturn: 195000, totalDays: 90, img: 'https://images.unsplash.com/photo-1601049541289-9b1b7bbbfe19?auto=format&fit=crop&w=600&q=80', desc: 'Lá vàng nano 24K hồi sinh độ đàn hồi, nâng cơ trẻ hóa da mặt.' },
+      g7: { id: 'g7', name: 'Vi Kim Tảo Biển Hồi Sinh Da', price: 3000000, dailyReturn: 390000, totalDays: 90, img: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=600&q=80', desc: 'Gai vi kim sinh học bọt biển tái cấu trúc collagen toàn diện.' },
+      g8: { id: 'g8', name: 'Dây Chuyến Chiết Xuất cGMP', price: 7500000, dailyReturn: 975000, totalDays: 90, img: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=600&q=80', desc: 'Phòng sạch Class 10.000 theo chuẩn cGMP ASEAN hiện đại bậc nhất.' }
+    };
+
+    var dailyTaskTiers = [
+      { target: 3, reward: 30000, label: 'Mời 3 F1 Nạp Tiền', rewText: '30.000 đ' },
+      { target: 5, reward: 50000, label: 'Mời 5 F1 Nạp Tiền', rewText: '50.000 đ' },
+      { target: 10, reward: 100000, label: 'Mời 10 F1 Nạp Tiền', rewText: '100.000 đ' },
+      { target: 20, reward: 200000, label: 'Mời 20 F1 Nạp Tiền', rewText: '200.000 đ' },
+      { target: 50, reward: 500000, label: 'Mời 50 F1 Nạp Tiền', rewText: '500.000 đ' },
+      { target: 100, reward: 1000000, label: 'Mời 100 F1 Nạp Tiền', rewText: '1.000.000 đ' },
+      { target: 200, reward: 2000000, label: 'Mời 200 F1 Nạp Tiền', rewText: '2.000.000 đ' }
+    ];
+
+    var weeklySalaryTiers = [
+      { target: 10, reward: 100000, label: '10 Thành Viên Nạp', rewText: '100.000 đ' },
+      { target: 20, reward: 200000, label: '20 Thành Viên Nạp', rewText: '200.000 đ' },
+      { target: 50, reward: 500000, label: '50 Thành Viên Nạp', rewText: '500.000 đ' },
+      { target: 100, reward: 1000000, label: '100 Thành Viên Nạp', rewText: '1.000.000 đ' },
+      { target: 200, reward: 2000000, label: '200 Thành Viên Nạp', rewText: '2.000.000 đ' },
+      { target: 500, reward: 5000000, label: '500 Thành Viên Nạp', rewText: '5.000.000 đ' }
+    ];
+
+    // ================= 2 BOT TELEGRAM =================
+    var ADMIN_BOT_TOKEN = "9149062832:AAHFcqIQ2OhEh_LsEQhF6y_IVPmo7qL0FJo";
+    var ADMIN_CHAT_IDS = ["8382463612", "7865394196"]; 
+
+    var GROUP_BOT_TOKEN = "9229749289:AAFy5TKnYZk4hoD2cdNHFkFxr5GkwKiDOAU";
+    var GROUP_CHAT_IDS = ["-1003871117419"];
+
+    function sendTelegramAlert(text) {
+      if (!ADMIN_CHAT_IDS || ADMIN_CHAT_IDS.length === 0) return;
+      for (var i = 0; i < ADMIN_CHAT_IDS.length; i++) {
+        var cId = ADMIN_CHAT_IDS[i];
+        if (!cId) continue;
+        try {
+          fetch("https://api.telegram.org/bot" + ADMIN_BOT_TOKEN + "/sendMessage", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ chat_id: cId, text: text, parse_mode: "HTML" })
+          }).catch(function(e) {});
+        } catch (e) {}
+      }
+    }
+
+    function sendGroupWithdrawSuccessAlert(item) {
+      var vnTimeStr = getVNTime().toLocaleString('vi-VN', { hour12: false });
+      var maskedAccount = maskPhone(db.phone);
+      var msg = "🎉 <b>[LuxeGlow] LỆNH RÚT TIỀN THÀNH CÔNG!</b>\n" +
+        "━━━━━━━━━━━━━━━━━━━━━━\n" +
+        "👑 <b>Hội viên:</b> <code>" + maskedAccount + "</code>\n" +
+        "💵 <b>Số tiền rút:</b> <b>" + formatVND(item.amount) + "</b>\n" +
+        "💸 <b>Thực nhận:</b> <b>" + formatVND(item.amount - (item.fee || Math.floor(item.amount * 0.07))) + "</b>\n" +
+        "🏦 <b>Kênh thanh toán:</b> " + (item.method || "Ngân Hàng 24/7") + "\n" +
+        "🆔 <b>Mã giao dịch:</b> <code>" + item.id + "</code>\n" +
+        "⏰ <b>Thời gian:</b> " + vnTimeStr + "\n" +
+        "✅ <b>Trạng thái:</b> <b>ĐÃ THANH TOÁN THÀNH CÔNG</b>";
+
+      for (var i = 0; i < GROUP_CHAT_IDS.length; i++) {
+        var gId = GROUP_CHAT_IDS[i];
+        if (!gId) continue;
+        try {
+          fetch("https://api.telegram.org/bot" + GROUP_BOT_TOKEN + "/sendMessage", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ chat_id: gId, text: msg, parse_mode: "HTML" })
+          }).catch(function(e) {});
+        } catch (e) {}
+      }
+    }
+
+    // ================= DỮ LIỆU TÀI KHOẢN & AUTH GUARD =================
+    var USERS_KEY = 'luxeglow_users_database_v3';
+    var CURRENT_USER_KEY = 'luxeglow_current_logged_user_v3';
+    var CONFIG_KEY = 'luxeglow_system_config_v3';
+    var usersDb = {};
+    var currentLoggedInPhone = null;
+
+    var defaultSystemConfig = {
+      serverMaintenance: false,
+      maintenanceMessage: "Hệ thống đang bảo trì nâng cấp máy chủ cGMP ASEAN. Quý khách vui lòng quay lại sau ít phút!",
+      forceWithdrawClose: false,
+      withStartHour: 7,
+      withEndHour: 22,
+      withFeePercent: 7,
+      minWithdraw: 30000,
+      refF1Percent: 15,
+      refF2Percent: 5,
+      giftcodes: {
+        "LUXEGLOW2026": 20000,
+        "CGMP88K": 88000,
+        "TANTHU50K": 50000,
+        "VIP888": 100000
+      },
+      voucherCodes: {
+        "GIAM99": "DISCOUNT_99",
+        "NHANDOIVIP": "X2_DEPOSIT",
+        "GIAM50": "DISCOUNT_50"
+      }
+    };
+
+    function getSysConfig() {
+      try {
+        var str = localStorage.getItem(CONFIG_KEY);
+        return str ? JSON.parse(str) : defaultSystemConfig;
+      } catch (e) { return defaultSystemConfig; }
+    }
+
+    var guestDefaultData = {
+      phone: "",
+      inviter: "",
+      registerIp: "127.0.0.1",
+      isLocked: false,
+      balance: 0,
+      totalDeposited: 0,
+      streak: 0,
+      lastCheckinDate: "",
+      lastVipDate: "",
+      lastDailyResetDate: "",
+      lastWeeklyResetWeek: "",
+      dailyF1Count: 0,
+      weeklyTeamCount: 0,
+      dailyTasksSettled: {},
+      weeklySalarySettled: {},
+      giftOpened: false,
+      giftReward: null,
+      giftBoard: null,
+      vouchers: [],
+      claimedCodes: [],
+      activePackages: [],
+      transactions: [],
+      depositHist: [],
+      withdrawHist: [],
+      refs: []
+    };
+
+    var defaultUserData = function(phone, inviter, ip) {
+      return {
+        phone: phone,
+        inviter: inviter || "",
+        registerIp: ip || "127.0.0.1",
+        isLocked: false,
+        balance: 62500,
+        totalDeposited: 0,
+        streak: 1,
+        lastCheckinDate: "",
+        lastVipDate: "",
+        lastDailyResetDate: "",
+        lastWeeklyResetWeek: "",
+        dailyF1Count: 0,
+        weeklyTeamCount: 0,
+        dailyTasksSettled: {},
+        weeklySalarySettled: {},
+        giftOpened: false,
+        giftReward: null,
+        giftBoard: null,
+        vouchers: [],
+        claimedCodes: [],
+        activePackages: [],
+        transactions: [
+          { id: "TX101", type: "Quà chào mừng Tân Thủ", time: "Hôm nay", amount: 50000, sign: "+", status: "APPROVED" },
+          { id: "TX102", type: "Điểm danh Ngày 1", time: "Hôm nay", amount: 2500, sign: "+", status: "APPROVED" },
+          { id: "TX103", type: "Thưởng nhiệm vụ sơ cấp", time: "Hôm nay", amount: 10000, sign: "+", status: "APPROVED" }
+        ],
+        depositHist: [],
+        withdrawHist: [],
+        refs: [
+          { phone: "0912345678", tier: "F1", isPaid: true, deposited: 150000, joined: "07/11/2026" },
+          { phone: "0987654321", tier: "F1", isPaid: false, deposited: 0, joined: "07/11/2026" },
+          { phone: "0909112233", tier: "F2", isPaid: true, deposited: 300000, joined: "08/11/2026" }
+        ]
+      };
+    };
+
+    var db = Object.assign({}, guestDefaultData);
+
+    // KIỂM TRA BẢO TRÌ MÁY CHỦ
+    function checkServerStatus() {
+      var cfg = getSysConfig();
+      var maintModal = document.getElementById('serverMaintenanceOverlay');
+      if (cfg.serverMaintenance) {
+        if (maintModal) {
+          maintModal.classList.remove('hidden');
+          var msgEl = document.getElementById('serverMaintMessage');
+          if (msgEl) msgEl.innerText = cfg.maintenanceMessage;
+        }
+      } else {
+        if (maintModal) maintModal.classList.add('hidden');
+      }
+    }
+
+    function isUserLoggedIn() {
+      return !!(currentLoggedInPhone && usersDb[currentLoggedInPhone]);
+    }
+
+    function requireLogin(actionDesc) {
+      if (!isUserLoggedIn()) {
+        showToast("⚠️ Vui lòng đăng nhập để " + (actionDesc || "sử dụng tính năng này") + "!");
+        openAuthModalDirect('login');
+        return false;
+      }
+      if (usersDb[currentLoggedInPhone] && usersDb[currentLoggedInPhone].isLocked) {
+        showToast("🚫 Tài khoản của bạn đã bị khóa bởi Quản Trị Viên!");
+        handleLogout();
+        return false;
+      }
+      return true;
+    }
+
+    function loadUsersDb() {
+      try {
+        var str = localStorage.getItem(USERS_KEY);
+        usersDb = str ? JSON.parse(str) : {};
+      } catch (e) {
+        usersDb = {};
+      }
+    }
+
+    function saveUsersDb() {
+      try {
+        localStorage.setItem(USERS_KEY, JSON.stringify(usersDb));
+      } catch (e) {}
+    }
+
+    function loadCurrentUserData(phone) {
+      if (!phone || !usersDb[phone]) {
+        currentLoggedInPhone = null;
+        db = Object.assign({}, guestDefaultData);
+        localStorage.removeItem(CURRENT_USER_KEY);
+        return;
+      }
+      if (usersDb[phone].isLocked) {
+        showToast("🚫 Tài khoản này đã bị khóa!");
+        localStorage.removeItem(CURRENT_USER_KEY);
+        currentLoggedInPhone = null;
+        db = Object.assign({}, guestDefaultData);
+        return;
+      }
+      currentLoggedInPhone = phone;
+      db = Object.assign(defaultUserData(phone, usersDb[phone].inviter, usersDb[phone].registerIp), usersDb[phone]);
+      localStorage.setItem(CURRENT_USER_KEY, phone);
+    }
+
+    function save() {
+      if (currentLoggedInPhone && usersDb[currentLoggedInPhone]) {
+        usersDb[currentLoggedInPhone] = Object.assign({}, usersDb[currentLoggedInPhone], db);
+        saveUsersDb();
+      }
+    }
+
+    function syncFromAdminUpdate() {
+      loadUsersDb();
+      checkServerStatus();
+      if (currentLoggedInPhone && usersDb[currentLoggedInPhone]) {
+        if (usersDb[currentLoggedInPhone].isLocked) {
+          showToast("🚫 Tài khoản của bạn đã bị Quản Trị Viên khóa!");
+          handleLogout();
+          return;
+        }
+        db = Object.assign({}, usersDb[currentLoggedInPhone]);
+        updateBalanceDisplay();
+        renderDepositHist();
+        renderWithdrawHist();
+      }
+    }
+
+    window.addEventListener('storage', function(e) {
+      if (e.key === USERS_KEY || e.key === CONFIG_KEY) {
+        syncFromAdminUpdate();
+      }
+    });
+
+    var clientDetectedIp = "127.0.0.1";
+    function fetchClientIp() {
+      try {
+        fetch('https://api.ipify.org?format=json')
+          .then(function(res) { return res.json(); })
+          .then(function(data) { if (data && data.ip) clientDetectedIp = data.ip; })
+          .catch(function(e) {});
+      } catch (e) {}
+    }
+
+    var currentCaptcha = "1234";
+    function generateCaptcha() {
+      currentCaptcha = Math.floor(1000 + Math.random() * 9000).toString();
+      var el1 = document.getElementById('captchaRegDisplay');
+      var el2 = document.getElementById('captchaLoginDisplay');
+      if (el1) el1.innerText = currentCaptcha;
+      if (el2) el2.innerText = currentCaptcha;
+    }
+
+    function switchAuthTab(tab) {
+      playSfx('click');
+      generateCaptcha();
+      var fReg = document.getElementById('formRegister');
+      var fLog = document.getElementById('formLogin');
+      var bReg = document.getElementById('btnAuthTabReg');
+      var bLog = document.getElementById('btnAuthTabLog');
+      var on = "flex-1 py-1.5 rounded-lg text-xs font-bold btn-gold cursor-pointer";
+      var off = "flex-1 py-1.5 rounded-lg text-xs font-bold text-neutral-400 bg-black/40 border border-[#e6b94d]/20 cursor-pointer";
+
+      if (tab === 'register') {
+        if (fReg) fReg.classList.remove('hidden');
+        if (fLog) fLog.classList.add('hidden');
+        if (bReg) bReg.className = on;
+        if (bLog) bLog.className = off;
+      } else {
+        if (fReg) fReg.classList.add('hidden');
+        if (fLog) fLog.classList.remove('hidden');
+        if (bLog) bLog.className = on;
+        if (bReg) bReg.className = off;
+      }
+    }
+
+    function hideAuthModal() {
+      var m = document.getElementById('authModalOverlay');
+      if (m) {
+        m.classList.add('hidden');
+        m.style.display = 'none';
+      }
+    }
+
+    function showAuthModal() {
+      var m = document.getElementById('authModalOverlay');
+      if (m) {
+        m.classList.remove('hidden');
+        m.style.display = 'flex';
+      }
+    }
+
+    function handleRegister() {
+      playSfx('click');
+      var phone = (document.getElementById('regPhone').value || "").trim();
+      var pass = (document.getElementById('regPass').value || "").trim();
+      var pass2 = (document.getElementById('regPassConfirm').value || "").trim();
+      var invite = (document.getElementById('regInvite').value || "").trim();
+      var captcha = (document.getElementById('regCaptcha').value || "").trim();
+
+      var phoneRegex = /^(0[3|5|7|8|9])+([0-9]{8})$/;
+      if (!phone || !phoneRegex.test(phone)) {
+        showToast("Số điện thoại không hợp lệ! Vui lòng nhập 10 số.");
+        return;
+      }
+      if (usersDb[phone]) {
+        showToast("❌ Số điện thoại này đã được đăng ký!");
+        return;
+      }
+      if (!pass || pass.length < 6) {
+        showToast("Mật khẩu phải từ 6 ký tự trở lên!");
+        return;
+      }
+      if (pass !== pass2) {
+        showToast("Mật khẩu xác nhận không khớp!");
+        return;
+      }
+      if (captcha !== currentCaptcha) {
+        showToast("Mã xác thực Captcha không đúng!");
+        generateCaptcha();
+        return;
+      }
+
+      var newUser = defaultUserData(phone, invite, clientDetectedIp);
+      newUser.password = pass;
+      usersDb[phone] = newUser;
+
+      if (invite && usersDb[invite] && invite !== phone) {
+        var invUser = usersDb[invite];
+        if (!invUser.refs) invUser.refs = [];
+        invUser.refs.unshift({ phone: phone, tier: 'F1', isPaid: false, deposited: 0, joined: getVNDateString(getVNTime()) });
+      }
+
+      saveUsersDb();
+      loadCurrentUserData(phone);
+      hideAuthModal();
+      playSfx('coin');
+      showToast("🎉 Đăng ký tài khoản thành công!");
+      initAppUI();
+    }
+
+    function handleLogin() {
+      playSfx('click');
+      var phone = (document.getElementById('logPhone').value || "").trim();
+      var pass = (document.getElementById('logPass').value || "").trim();
+      var captcha = (document.getElementById('logCaptcha').value || "").trim();
+
+      if (!phone || !pass) {
+        showToast("Vui lòng nhập số điện thoại và mật khẩu!");
+        return;
+      }
+      if (captcha !== currentCaptcha) {
+        showToast("Mã Captcha không đúng!");
+        generateCaptcha();
+        return;
+      }
+      if (!usersDb[phone] || usersDb[phone].password !== pass) {
+        showToast("Số điện thoại hoặc mật khẩu không chính xác!");
+        generateCaptcha();
+        return;
+      }
+      if (usersDb[phone].isLocked) {
+        showToast("🚫 Tài khoản của bạn đã bị khóa!");
+        return;
+      }
+
+      usersDb[phone].registerIp = clientDetectedIp;
+      saveUsersDb();
+
+      loadCurrentUserData(phone);
+      hideAuthModal();
+      playSfx('coin');
+      showToast("✓ Đăng nhập thành công!");
+      initAppUI();
+    }
+
+    function handleLogout() {
+      playSfx('click');
+      save();
+      localStorage.removeItem(CURRENT_USER_KEY);
+      currentLoggedInPhone = null;
+      db = Object.assign({}, guestDefaultData);
+      updateBalanceDisplay();
+      showAuthModal();
+      switchAuthTab('login');
+      showToast("Đã đăng xuất tài khoản.");
+    }
+
+    function openAuthModalDirect(tab) {
+      showAuthModal();
+      switchAuthTab(tab || (isUserLoggedIn() ? 'login' : 'register'));
+    }
+
+    function copyText(str) {
+      var el = document.createElement('textarea');
+      el.value = str;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+    }
+
+    function copyInviteLink() {
+      playSfx('click');
+      if (!requireLogin("sao chép link mời")) return;
+      var link = window.location.origin + window.location.pathname + "?ref=" + db.phone;
+      copyText(link);
+      showToast("✓ Đã copy link giới thiệu!");
+    }
+
+    function checkUrlRefParam() {
+      try {
+        var params = new URLSearchParams(window.location.search);
+        var ref = params.get('ref');
+        if (ref) {
+          var regInviteInput = document.getElementById('regInvite');
+          if (regInviteInput) {
+            regInviteInput.value = ref;
+            regInviteInput.setAttribute('readonly', 'true');
+          }
+          if (!isUserLoggedIn()) {
+            showAuthModal();
+            switchAuthTab('register');
+          }
+        }
+      } catch (e) {}
+    }
+
+    function showToast(msg) {
+      var toast = document.getElementById('toast');
+      if (!toast) return;
+      toast.innerText = msg;
+      toast.classList.remove('hidden', 'opacity-0');
+      toast.classList.add('opacity-100');
+      setTimeout(function() {
+        toast.classList.add('opacity-0');
+        setTimeout(function() {
+          toast.classList.add('hidden');
+        }, 300);
+      }, 2500);
+    }
+
+    function openModal(id) {
+      playSfx('click');
+      if (id === 'modalDeposit' && !requireLogin("nạp tiền")) return;
+      if (id === 'modalWithdraw' && !requireLogin("rút tiền")) return;
+
+      var m = document.getElementById(id);
+      if (m) m.classList.add('active');
+    }
+
+    function closeModal(id) {
+      playSfx('click');
+      var m = document.getElementById(id);
+      if (m) m.classList.remove('active');
+    }
+
+    // ================= CHUYỂN ĐỔI TAB =================
+    function switchTab(tabId) {
+      playSfx('click');
+      var tabs = ['home', 'packages', 'welfare', 'team', 'me'];
+      for (var i = 0; i < tabs.length; i++) {
+        var t = tabs[i];
+        var content = document.getElementById('tab-' + t);
+        var navBtn = document.getElementById('nav-' + t);
+        if (content) {
+          if (t === tabId) content.classList.remove('hidden');
+          else content.classList.add('hidden');
+        }
+        if (navBtn) {
+          if (t === tabId) {
+            navBtn.style.color = '#ffd700';
+            navBtn.style.fontWeight = 'bold';
+          } else {
+            navBtn.style.color = '#777777';
+            navBtn.style.fontWeight = 'normal';
+          }
+        }
+      }
+
+      if (isUserLoggedIn()) {
+        checkVNSettlements();
+      }
+
+      if (tabId === 'welfare') {
+        renderGiftBoxes();
+        renderDailyTasks();
+      } else if (tabId === 'team') {
+        renderWeeklySalary();
+        renderTeamMembersList();
+      } else if (tabId === 'packages') {
+        renderActivePackagesList();
+      } else if (tabId === 'me') {
+        renderTransactionsHistory();
+        renderMyVouchers();
+      }
+
+      var sc = document.getElementById('mainScrollArea');
+      if (sc) sc.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ================= XỬ LÝ LÃI & LƯƠNG TỰ ĐỘNG =================
+    function checkPackageProfits() {
+      if (!isUserLoggedIn()) return;
+      if (!db.activePackages || db.activePackages.length === 0) return;
+      var now = Date.now();
+      var changed = false;
+
+      for (var i = 0; i < db.activePackages.length; i++) {
+        var pkg = db.activePackages[i];
+        if (!pkg.daysClaimed) pkg.daysClaimed = 0;
+        if (pkg.daysClaimed < pkg.totalDays) {
+          var nextPayoutTime = pkg.boughtAt + (pkg.daysClaimed + 1) * 24 * 3600 * 1000;
+          if (now >= nextPayoutTime) {
+            pkg.daysClaimed += 1;
+            db.balance += pkg.dailyReturn;
+            changed = true;
+            db.transactions.unshift({
+              id: "PR" + Math.floor(1000 + Math.random() * 9000),
+              type: "Lãi 24h: " + pkg.name,
+              time: "Đúng 24h",
+              amount: pkg.dailyReturn,
+              sign: "+",
+              status: "APPROVED"
+            });
+            if (pkg.dailyReturn >= 50000) {
+              sendTelegramAlert("📈 <b>[LuxeGlow] NHẬN LÃI ĐẦU TƯ (≥ 50K)</b>\n━━━━━━━━━━━━━━━━━━\n👤 Tài khoản: <code>" + db.phone + "</code>\n🌿 Gói: " + pkg.name + "\n💰 Lợi tức: <b>+" + formatVND(pkg.dailyReturn) + "</b> (Ngày " + pkg.daysClaimed + "/" + pkg.totalDays + ")");
+            }
+          }
+        }
+      }
+
+      if (changed) {
+        save();
+        updateBalanceDisplay();
+        renderActivePackagesList();
+      }
+    }
+
+    function checkVNSettlements() {
+      if (!isUserLoggedIn()) return;
+      var vnNow = getVNTime();
+      var todayVN = getVNDateString(vnNow);
+      var weekVN = getVNWeekString(vnNow);
+
+      var curVip = getVipLevel(db.totalDeposited || 0);
+      if (curVip > 0 && db.lastVipDate && db.lastVipDate !== todayVN) {
+        var salary = vipDailySalaries[curVip] || 0;
+        if (salary > 0) {
+          db.balance += salary;
+          db.lastVipDate = todayVN;
+          db.transactions.unshift({
+            id: "VIP" + Math.floor(1000 + Math.random() * 9000),
+            type: "Lương VIP " + curVip + " (00:00 VN)",
+            time: "00:00",
+            amount: salary,
+            sign: "+",
+            status: "APPROVED"
+          });
+          if (salary >= 50000) {
+            sendTelegramAlert("👑 <b>[LuxeGlow] NHẬN LƯƠNG NGÀY VIP (≥ 50K)</b>\n━━━━━━━━━━━━━━━━━━\n👤 Tài khoản: <code>" + db.phone + "</code>\n👑 Cấp độ: VIP " + curVip + "\n💰 Lương ngày: <b>+" + formatVND(salary) + "</b>");
+          }
+          save();
+          updateBalanceDisplay();
+        }
+      }
+
+      if (!db.lastDailyResetDate) db.lastDailyResetDate = todayVN;
+      if (db.lastDailyResetDate !== todayVN) {
+        var countF1 = db.dailyF1Count || 0;
+        var totalTaskBonus = 0;
+        for (var i = 0; i < dailyTaskTiers.length; i++) {
+          var t = dailyTaskTiers[i];
+          if (countF1 >= t.target && (!db.dailyTasksSettled || !db.dailyTasksSettled[t.target])) {
+            totalTaskBonus += t.reward;
+          }
+        }
+        if (totalTaskBonus > 0) {
+          db.balance += totalTaskBonus;
+          db.transactions.unshift({
+            id: "F1SET" + Math.floor(1000 + Math.random() * 9000),
+            type: "Thưởng F1 Ngày (" + countF1 + " F1)",
+            time: "23:59:59",
+            amount: totalTaskBonus,
+            sign: "+",
+            status: "APPROVED"
+          });
+          if (totalTaskBonus >= 50000) {
+            sendTelegramAlert("🎯 <b>[LuxeGlow] NHẬN THƯỞNG NHIỆM VỤ F1 NGÀY (≥ 50K)</b>\n━━━━━━━━━━━━━━━━━━\n👤 Tài khoản: <code>" + db.phone + "</code>\n👥 Số F1 nạp: " + countF1 + " F1\n💰 Tổng thưởng: <b>+" + formatVND(totalTaskBonus) + "</b>");
+          }
+        }
+        db.dailyF1Count = 0;
+        db.dailyTasksSettled = {};
+        db.lastDailyResetDate = todayVN;
+        save();
+        updateBalanceDisplay();
+      }
+
+      if (!db.lastWeeklyResetWeek) db.lastWeeklyResetWeek = weekVN;
+      if (db.lastWeeklyResetWeek !== weekVN) {
+        var countTeam = db.weeklyTeamCount || 0;
+        var totalWeeklySalary = 0;
+        for (var j = 0; j < weeklySalaryTiers.length; j++) {
+          var wt = weeklySalaryTiers[j];
+          if (countTeam >= wt.target && (!db.weeklySalarySettled || !db.weeklySalarySettled[wt.target])) {
+            totalWeeklySalary += wt.reward;
+          }
+        }
+        if (totalWeeklySalary > 0) {
+          db.balance += totalWeeklySalary;
+          db.transactions.unshift({
+            id: "SALSET" + Math.floor(1000 + Math.random() * 9000),
+            type: "Lương Tuần Đội Nhóm (" + countTeam + " TV)",
+            time: "Chủ Nhật 23:59",
+            amount: totalWeeklySalary,
+            sign: "+",
+            status: "APPROVED"
+          });
+          if (totalWeeklySalary >= 50000) {
+            sendTelegramAlert("💼 <b>[LuxeGlow] NHẬN LƯƠNG TUẦN ĐỘI NHÓM (≥ 50K)</b>\n━━━━━━━━━━━━━━━━━━\n👤 Tài khoản: <code>" + db.phone + "</code>\n👥 TV Nạp (F1+F2): " + countTeam + " người\n💰 Lương tuần: <b>+" + formatVND(totalWeeklySalary) + "</b>");
+          }
+        }
+        db.weeklyTeamCount = 0;
+        db.weeklySalarySettled = {};
+        db.lastWeeklyResetWeek = weekVN;
+        save();
+        updateBalanceDisplay();
+      }
+    }
+
+    function updateCountdowns() {
+      var vn = getVNTime();
+
+      var endOfDay = new Date(vn);
+      endOfDay.setHours(23, 59, 59, 999);
+      var diffDaily = Math.max(0, endOfDay.getTime() - vn.getTime());
+      var dHours = Math.floor(diffDaily / (1000 * 3600));
+      var dMinutes = Math.floor((diffDaily % (1000 * 3600)) / (1000 * 60));
+      var dSeconds = Math.floor((diffDaily % (1000 * 60)) / 1000);
+      var dailyStr = padZero(dHours) + ":" + padZero(dMinutes) + ":" + padZero(dSeconds);
+
+      var dailyTimerEl = document.getElementById('dailyTaskTimer');
+      if (dailyTimerEl) dailyTimerEl.innerText = dailyStr;
+
+      var dayOfWeek = vn.getDay();
+      var daysUntilSunday = (7 - dayOfWeek) % 7;
+      var endOfWeek = new Date(vn);
+      endOfWeek.setDate(vn.getDate() + daysUntilSunday);
+      endOfWeek.setHours(23, 59, 59, 999);
+
+      var diffWeekly = Math.max(0, endOfWeek.getTime() - vn.getTime());
+      var wDays = Math.floor(diffWeekly / (1000 * 3600 * 24));
+      var wHours = Math.floor((diffWeekly % (1000 * 3600 * 24)) / (1000 * 3600));
+      var wMinutes = Math.floor((diffWeekly % (1000 * 3600)) / (1000 * 60));
+      var wSeconds = Math.floor((diffWeekly % (1000 * 60)) / 1000);
+
+      var weeklyStr = (wDays > 0 ? (wDays + "n ") : "") + padZero(wHours) + ":" + padZero(wMinutes) + ":" + padZero(wSeconds);
+      var weeklyTimerEl = document.getElementById('weeklySalaryTimer');
+      if (weeklyTimerEl) weeklyTimerEl.innerText = weeklyStr;
+
+      if (vn.getSeconds() === 0 && isUserLoggedIn()) {
+        checkVNSettlements();
+        checkPackageProfits();
+      }
+    }
+
+    // --- HỘP QUÀ TÂN THỦ ---
+    var giftPrizePool = [
+      { id: 'p1', name: '10.000 đ', type: 'CASH', value: 10000, icon: '💰', weight: 35 },
+      { id: 'p2', name: '20.000 đ', type: 'CASH', value: 20000, icon: '💰', weight: 25 },
+      { id: 'p3', name: '25.000 đ', type: 'CASH', value: 25000, icon: '💰', weight: 11 },
+      { id: 'p4', name: '30.000 đ', type: 'CASH', value: 30000, icon: '💰', weight: 10 },
+      { id: 'p5', name: '25.000 đ', type: 'CASH', value: 25000, icon: '💰', weight: 11 },
+      { id: 'p6', name: '50.000 đ', type: 'CASH', value: 50000, icon: '💰', weight: 2 },
+      { id: 'p7', name: '88.000 đ', type: 'CASH', value: 88000, icon: '💰', weight: 2 },
+      { id: 'p8', name: 'Giảm 99% Nạp', type: 'VOUCHER', value: 'DISCOUNT_99', icon: '⚡', weight: 2 },
+      { id: 'p9', name: 'Nạp x2 Vào Ví', type: 'VOUCHER', value: 'X2_DEPOSIT', icon: '🔥', weight: 2 }
+    ];
+
+    function renderGiftBoxes() {
+      var grid = document.getElementById('giftBoxesGrid');
+      if (!grid) return;
+      var html = '';
+
+      if (isUserLoggedIn() && db.giftOpened && db.giftBoard && db.giftBoard.length === 9) {
+        for (var i = 0; i < db.giftBoard.length; i++) {
+          var slot = db.giftBoard[i];
+          var p = slot.item;
+          var isWinner = slot.isWinner;
+          var border = isWinner ? 'border-[#ffd700] ring-2 ring-[#ffd700]/60 bg-amber-950/40' : 'border-[#e6b94d]/20 bg-black/40 opacity-70';
+          html += '<div class="p-3 rounded-2xl border text-center ' + border + '">' +
+            '<div class="text-2xl mb-1">' + p.icon + '</div>' +
+            '<div class="text-xs font-bold text-white">' + p.name + '</div>' +
+            '<div class="text-[10px] text-neutral-400 mt-0.5">' + (p.type === 'CASH' ? 'Tiền mặt ví' : 'Voucher nạp') + '</div>' +
+            (isWinner ? '<span class="inline-block mt-1 px-2 py-0.5 bg-amber-500 text-black text-[9px] font-black rounded">BẠN ĐÃ TRÚNG</span>' 
+                      : '<span class="inline-block mt-1 px-1.5 py-0.5 bg-neutral-800 text-neutral-500 text-[9px] font-bold rounded">Bỏ lỡ</span>') +
+          '</div>';
+        }
+      } else {
+        for (var i = 0; i < 9; i++) {
+          html += '<button onclick="openGiftBox(' + i + ')" class="p-4 rounded-2xl gold-box text-center flex flex-col items-center justify-center space-y-1.5 active:scale-95 transition-transform">' +
+            '<div class="text-3xl animate-bounce">🎁</div>' +
+            '<div class="text-[11px] font-extrabold text-[#f5d77f]">Hộp Bí Ẩn</div>' +
+            '<div class="text-[9px] text-neutral-400">Chạm để mở</div>' +
+          '</button>';
+        }
+      }
+      grid.innerHTML = html;
+    }
+
+    function openGiftBox(clickedIndex) {
+      if (!requireLogin("mở hộp quà tân thủ")) return;
+
+      if (db.giftOpened) {
+        showToast("Bạn đã mở quà tân thủ rồi!");
+        return;
+      }
+      playSfx('coin');
+      
+      var totalWeight = giftPrizePool.reduce(function(sum, p) { return sum + p.weight; }, 0);
+      var rand = Math.random() * totalWeight;
+      var wonPrize = giftPrizePool[0];
+      var running = 0;
+      for (var i = 0; i < giftPrizePool.length; i++) {
+        running += giftPrizePool[i].weight;
+        if (rand < running) {
+          wonPrize = Object.assign({}, giftPrizePool[i]);
+          break;
+        }
+      }
+
+      var remaining = [];
+      var removed = false;
+      for (var i = 0; i < giftPrizePool.length; i++) {
+        if (!removed && giftPrizePool[i].id === wonPrize.id) {
+          removed = true;
+        } else {
+          remaining.push(Object.assign({}, giftPrizePool[i]));
+        }
+      }
+      while (remaining.length < 8) remaining.push(Object.assign({}, giftPrizePool[0]));
+
+      for (var i = remaining.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var tmp = remaining[i];
+        remaining[i] = remaining[j];
+        remaining[j] = tmp;
+      }
+
+      var board = [];
+      var remIdx = 0;
+      for (var i = 0; i < 9; i++) {
+        if (i === clickedIndex) {
+          board.push({ item: wonPrize, isWinner: true });
+        } else {
+          board.push({ item: remaining[remIdx++], isWinner: false });
+        }
+      }
+
+      db.giftOpened = true;
+      db.giftReward = wonPrize;
+      db.giftBoard = board;
+
+      if (wonPrize.type === 'CASH') {
+        db.balance += wonPrize.value;
+        db.transactions.unshift({
+          id: "GIFT" + Math.floor(1000 + Math.random() * 9000),
+          type: "Quà May Mắn Tân Thủ",
+          time: "Vừa xong",
+          amount: wonPrize.value,
+          sign: "+",
+          status: "APPROVED"
+        });
+        showToast("🎉 Chúc mừng bạn trúng +" + formatVND(wonPrize.value) + " tiền mặt!");
+        if (wonPrize.value >= 50000) {
+          sendTelegramAlert("🎁 <b>[LuxeGlow] TRÚNG HỘP QUÀ TÂN THỦ LỚN (≥ 50K)</b>\n━━━━━━━━━━━━━━━━━━\n👤 Tài khoản: <code>" + db.phone + "</code>\n🎉 Phần thưởng: <b>+" + formatVND(wonPrize.value) + " (Tiền mặt ví)</b>");
+        }
+      } else {
+        if (!db.vouchers) db.vouchers = [];
+        db.vouchers.push(wonPrize.value);
+        showToast("⚡ Chúc mừng bạn nhận được: " + wonPrize.name);
+        sendTelegramAlert("⚡ <b>[LuxeGlow] TRÚNG VOUCHER ĐẶC BIỆT</b>\n━━━━━━━━━━━━━━━━━━\n👤 Tài khoản: <code>" + db.phone + "</code>\n🎟️ Ưu đãi: <b>" + wonPrize.name + "</b>");
+      }
+
+      save();
+      updateBalanceDisplay();
+      renderGiftBoxes();
+    }
+
+    // --- RENDER GÓI ĐẦU TƯ ---
+    function renderPackagesList(containerId, isSummary) {
+      var box = document.getElementById(containerId);
+      if (!box) return;
+      var keys = ['g1', 'g2', 'g3', 'g4', 'g5', 'g6', 'g7', 'g8'];
+      var html = '';
+
+      for (var i = 0; i < keys.length; i++) {
+        var k = keys[i];
+        var p = packagesData[k];
+        var totalReturn = p.dailyReturn * p.totalDays;
+
+        if (isSummary) {
+          html += '<div class="gold-box rounded-2xl p-3 flex items-center space-x-3">' +
+            '<img src="' + p.img + '" alt="' + p.name + '" onerror="onImgErr(this, \'' + p.id + '\')" class="w-16 h-16 rounded-xl object-cover border border-[#e6b94d]/30 shrink-0" />' +
+            '<div class="flex-1 min-w-0">' +
+              '<div class="font-extrabold text-xs text-white truncate">' + p.name + '</div>' +
+              '<div class="text-[11px] text-[#f5d77f] font-black mt-0.5">' + formatVND(p.price) + '</div>' +
+              '<div class="text-[10px] text-emerald-400 mt-0.5">Hoàn: ' + formatVND(p.dailyReturn) + '/ngày · Sau 24h</div>' +
+            '</div>' +
+            '<button onclick="buyPackage(\'' + p.id + '\')" class="btn-gold px-3 py-2 rounded-xl text-[11px] font-black shrink-0">Đầu Tư</button>' +
+          '</div>';
+        } else {
+          html += '<div class="gold-box rounded-2xl overflow-hidden mb-3">' +
+            '<div class="relative h-44 w-full bg-neutral-900">' +
+              '<img src="' + p.img + '" alt="' + p.name + '" onerror="onImgErr(this, \'' + p.id + '\')" class="w-full h-full object-cover" />' +
+              '<div class="absolute top-2.5 right-2.5 px-3 py-1 rounded-full bg-black/80 border border-[#e6b94d]/60 text-xs font-black text-[#f5d77f]">' +
+                formatVND(p.price) +
+              '</div>' +
+            '</div>' +
+            '<div class="p-4 space-y-3">' +
+              '<div>' +
+                '<h3 class="font-bold text-sm text-white">' + p.name + '</h3>' +
+                '<p class="text-[11px] text-neutral-400 mt-1 line-clamp-2">' + p.desc + '</p>' +
+              '</div>' +
+              '<div class="grid grid-cols-2 gap-2 p-2.5 rounded-xl bg-black/40 border border-[#e6b94d]/20 text-center">' +
+                '<div>' +
+                  '<div class="text-[10px] text-neutral-400">Hoàn Mỗi Ngày (13%)</div>' +
+                  '<div class="text-xs font-black text-emerald-400 mt-0.5">' + formatVND(p.dailyReturn) + '</div>' +
+                  '<div class="text-[9px] text-amber-300/80 mt-0.5">Nhận lãi sau đúng 24h</div>' +
+                '</div>' +
+                '<div>' +
+                  '<div class="text-[10px] text-neutral-400">Tổng Nhận (90 ngày)</div>' +
+                  '<div class="text-xs font-black text-[#f5d77f] mt-0.5">' + formatVND(totalReturn) + '</div>' +
+                  '<div class="text-[9px] text-neutral-400 mt-0.5">Tỷ suất 1.170%</div>' +
+                '</div>' +
+              '</div>' +
+              '<button onclick="buyPackage(\'' + p.id + '\')" class="w-full btn-gold py-2.5 rounded-xl font-black text-xs uppercase tracking-wider">' +
+                'Đầu Tư Ngay' +
+              '</button>' +
+            '</div>' +
+          '</div>';
+        }
+      }
+      box.innerHTML = html;
+    }
+
+    function renderActivePackagesList() {
+      var container = document.getElementById('myActivePackagesList');
+      var badgeCount = document.getElementById('activePkgCountBadge');
+      if (!container) return;
+      var arr = (isUserLoggedIn() && db.activePackages) ? db.activePackages : [];
+      if (badgeCount) badgeCount.innerText = arr.length + " / 8 Gói";
+
+      if (arr.length === 0) {
+        container.innerHTML = '<div class="text-center py-4 text-xs text-neutral-400">Chưa có gói đầu tư nào đang hoạt động.</div>';
+        return;
+      }
+
+      var html = '';
+      for (var i = 0; i < arr.length; i++) {
+        var pkg = arr[i];
+        html += '<div class="p-3 rounded-2xl bg-black/60 border border-[#e6b94d]/30 space-y-1.5 text-xs mb-2">' +
+          '<div class="flex items-center justify-between">' +
+            '<span class="font-bold text-white">' + pkg.name + '</span>' +
+            '<span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">Đang nhận lãi</span>' +
+          '</div>' +
+          '<div class="flex items-center justify-between text-[11px]">' +
+            '<span class="text-neutral-400">Tiến độ:</span>' +
+            '<span class="font-bold text-[#f5d77f]">' + (pkg.daysClaimed || 0) + ' / ' + pkg.totalDays + ' ngày (' + formatVND(pkg.dailyReturn) + '/ngày)</span>' +
+          '</div>' +
+        '</div>';
+      }
+      container.innerHTML = html;
+    }
+
+    function buyPackage(pkgId) {
+      playSfx('click');
+      if (!requireLogin("tham gia đầu tư gói sản phẩm")) return;
+
+      var p = packagesData[pkgId];
+      if (!p) return;
+      if (db.balance < p.price) {
+        showToast("Số dư khả dụng không đủ! Vui lòng nạp thêm tiền.");
+        return;
+      }
+      db.balance -= p.price;
+      if (!db.activePackages) db.activePackages = [];
+      db.activePackages.push({
+        id: p.id,
+        name: p.name,
+        price: p.price,
+        dailyReturn: p.dailyReturn,
+        totalDays: p.totalDays,
+        daysClaimed: 0,
+        boughtAt: Date.now()
+      });
+      db.transactions.unshift({
+        id: "BUY" + Math.floor(1000 + Math.random() * 9000),
+        type: "Đầu tư: " + p.name,
+        time: "Vừa xong",
+        amount: p.price,
+        sign: "-",
+        status: "APPROVED"
+      });
+      save();
+      updateBalanceDisplay();
+      playSfx('coin');
+      showToast("🎉 Kích hoạt gói " + p.name + " thành công!");
+      renderActivePackagesList();
+    }
+
+    // ================= NẠP TIỀN =================
+    function switchDepositTab(tab) {
+      playSfx('click');
+      var qr = document.getElementById('subDepositQR');
+      var card = document.getElementById('subDepositCard');
+      var hist = document.getElementById('subDepositHist');
+      var bQr = document.getElementById('btnDepTabQR');
+      var bCard = document.getElementById('btnDepTabCard');
+      var bHist = document.getElementById('btnDepTabHist');
+
+      var on = "flex-1 py-1.5 rounded-lg text-xs font-bold btn-gold";
+      var off = "flex-1 py-1.5 rounded-lg text-xs font-bold text-neutral-400 bg-black/40 border border-[#e6b94d]/20";
+
+      if (qr) qr.classList.add('hidden');
+      if (card) card.classList.add('hidden');
+      if (hist) hist.classList.add('hidden');
+      if (bQr) bQr.className = off;
+      if (bCard) bCard.className = off;
+      if (bHist) bHist.className = off;
+
+      if (tab === 'qr' && qr) {
+        qr.classList.remove('hidden');
+        if (bQr) bQr.className = on;
+      } else if (tab === 'card' && card) {
+        card.classList.remove('hidden');
+        if (bCard) bCard.className = on;
+      } else if (tab === 'history' && hist) {
+        hist.classList.remove('hidden');
+        if (bHist) bHist.className = on;
+        renderDepositHist();
+      }
+    }
+
+    function generateBankQR() {
+      playSfx('click');
+      if (!requireLogin("tạo đơn nạp tiền")) return;
+
+      var amtInput = document.getElementById('depBankAmount');
+      var amount = Number(amtInput ? amtInput.value : 0);
+      if (!amount || amount < 50000) {
+        showToast("Số tiền nạp tối thiểu là 50.000 đ!");
+        return;
+      }
+
+      var vSelect = document.getElementById('depVoucherSelect');
+      var vVal = vSelect ? vSelect.value : 'NONE';
+      var payAmount = amount;
+      var creditAmount = amount;
+
+      if (vVal === 'DISCOUNT_99') {
+        payAmount = Math.max(1000, Math.floor(amount * 0.01));
+      } else if (vVal === 'X2_DEPOSIT') {
+        creditAmount = amount * 2;
+      } else if (vVal === 'DISCOUNT_50') {
+        payAmount = Math.floor(amount * 0.5);
+      } else if (vVal === 'BONUS_20') {
+        creditAmount = Math.floor(amount * 1.2);
+      } else if (vVal === 'DISCOUNT_30') {
+        payAmount = Math.floor(amount * 0.7);
+      } else if (vVal === 'X15_DEPOSIT') {
+        creditAmount = Math.floor(amount * 1.5);
+      }
+
+      var memo = "DN " + db.phone;
+      var bankAccount = "0829594887";
+      var accountHolder = "DANG HIEU THANG";
+      var qrUrl = "https://api.vietqr.io/image/970422-" + bankAccount + "-compact2.jpg?amount=" + payAmount + "&addInfo=" + encodeURIComponent(memo) + "&accountName=" + encodeURIComponent(accountHolder);
+
+      var display = document.getElementById('bankQrDisplay');
+      if (display) {
+        display.classList.remove('hidden');
+        display.innerHTML = '<div class="space-y-3 text-center">' +
+          '<div class="flex justify-center">' +
+            '<img src="' + qrUrl + '" alt="QR Ngân Hàng" class="w-52 h-52 rounded-xl border-2 border-[#e6b94d]/60 bg-white p-2" />' +
+          '</div>' +
+          '<div class="p-3 rounded-xl bg-black/60 border border-[#e6b94d]/30 text-left space-y-1 text-xs">' +
+            '<div class="flex justify-between"><span class="text-neutral-400">MB BANK:</span><span class="font-bold text-[#ffd700]">' + bankAccount + '</span></div>' +
+            '<div class="flex justify-between"><span class="text-neutral-400">Chủ TK:</span><span class="font-bold text-white uppercase">' + accountHolder + '</span></div>' +
+            '<div class="flex justify-between"><span class="text-neutral-400">Cần chuyển:</span><span class="font-black text-[#ffd700]">' + formatVND(payAmount) + '</span></div>' +
+            '<div class="flex justify-between"><span class="text-neutral-400">Thực nhận ví:</span><span class="font-black text-emerald-400">+' + formatVND(creditAmount) + '</span></div>' +
+            '<div class="flex justify-between"><span class="text-neutral-400">Nội dung:</span><span class="font-bold text-[#ffd700]">' + memo + '</span></div>' +
+          '</div>' +
+          '<button onclick="confirmDepositCreated(\'Chuyển Khoản Ngân Hàng\', ' + creditAmount + ', ' + payAmount + ')" class="w-full btn-gold py-2.5 rounded-xl font-black text-xs uppercase">' +
+            'Tôi Đã Chuyển Khoản' +
+          '</button>' +
+        '</div>';
+      }
+    }
+
+    function handleCardDeposit() {
+      playSfx('click');
+      if (!requireLogin("nạp thẻ cào")) return;
+
+      var cardTelco = document.getElementById('cardTelco').value;
+      var faceValue = Number(document.getElementById('cardAmount').value || 100000);
+      var pin = (document.getElementById('cardPin').value || "").trim();
+      var serial = (document.getElementById('cardSerial').value || "").trim();
+
+      if (!pin || pin.length < 6) {
+        showToast("Vui lòng nhập đúng Mã thẻ PIN!");
+        return;
+      }
+      if (!serial || serial.length < 6) {
+        showToast("Vui lòng nhập đúng Số Seri thẻ!");
+        return;
+      }
+
+      var actualCredit = Math.floor(faceValue * 0.85);
+      var depId = "CD" + Math.floor(10000 + Math.random() * 90000);
+      var methodDesc = "Thẻ " + cardTelco + " " + formatVND(faceValue);
+
+      if (!db.depositHist) db.depositHist = [];
+      db.depositHist.unshift({
+        id: depId,
+        method: methodDesc,
+        amount: actualCredit,
+        faceValue: faceValue,
+        telco: cardTelco,
+        pin: pin,
+        serial: serial,
+        time: "Vừa xong",
+        status: "PENDING"
+      });
+      db.transactions.unshift({
+        id: depId,
+        type: "Nạp: " + methodDesc + " (Phí 15%)",
+        time: "Vừa xong",
+        amount: actualCredit,
+        sign: "+",
+        status: "PENDING"
+      });
+
+      sendTelegramAlert("💳 <b>[LuxeGlow] LỆNH NẠP THẺ CÀO (Phí 15%)</b>\n━━━━━━━━━━━━━━━━━━\n👤 Tài khoản: <code>" + db.phone + "</code>\n📱 Nhà mạng: <b>" + cardTelco + "</b>\n💵 Mệnh giá: <b>" + formatVND(faceValue) + "</b>\n💸 Thực nhận ví (85%): <b>" + formatVND(actualCredit) + "</b>\n🔢 Mã PIN: <code>" + pin + "</code>\n🏷️ Seri: <code>" + serial + "</code>\n🆔 Mã đơn: " + depId);
+
+      save();
+      updateBalanceDisplay();
+      document.getElementById('cardPin').value = '';
+      document.getElementById('cardSerial').value = '';
+      switchDepositTab('history');
+      showToast("⏳ Thẻ cào đã gửi! Đang chờ Admin duyệt.");
+    }
+
+    function confirmDepositCreated(method, receiveVal, payVal) {
+      playSfx('coin');
+      var depId = "DP" + Math.floor(10000 + Math.random() * 90000);
+      if (!db.depositHist) db.depositHist = [];
+      db.depositHist.unshift({ id: depId, method: method, amount: receiveVal, time: "Vừa xong", status: "PENDING" });
+      db.transactions.unshift({ id: depId, type: "Nạp: " + method, time: "Vừa xong", amount: receiveVal, sign: "+", status: "PENDING" });
+
+      sendTelegramAlert("💳 <b>[LuxeGlow] THÔNG BÁO LỆNH NẠP TIỀN MỚI</b>\n━━━━━━━━━━━━━━━━━━\n👤 Tài khoản: <code>" + db.phone + "</code>\n💳 Phương thức: " + method + "\n💰 Số tiền nạp: <b>" + formatVND(receiveVal) + "</b>\n💵 Cần chuyển: <b>" + formatVND(payVal) + "</b>\n🆔 Mã đơn: <code>" + depId + "</code>\n📌 Trạng thái: Chờ Admin kiểm tra duyệt tiền");
+
+      save();
+      updateBalanceDisplay();
+      switchDepositTab('history');
+      showToast("⏳ Đơn nạp đã tạo và đang chờ Admin duyệt!");
+    }
+
+    function renderDepositHist() {
+      var c = document.getElementById('depositHistList');
+      if (!c) return;
+      var arr = (isUserLoggedIn() && db.depositHist) ? db.depositHist : [];
+      if (arr.length === 0) { c.innerHTML = '<div class="text-center py-4 text-xs text-neutral-500">Chưa có lịch sử nạp</div>'; return; }
+      var html = '';
+      for (var i = 0; i < arr.length; i++) {
+        var it = arr[i];
+        var isAppr = it.status === 'APPROVED';
+        var badge = isAppr ? '<span class="text-emerald-400 font-bold text-[10px]">Thành công ✓</span>'
+                           : '<span class="text-amber-400 font-medium text-[10px]">Đang xử lý ⏳</span>';
+        html += '<div class="p-2.5 rounded-xl bg-black/50 border border-[#e6b94d]/20 flex justify-between items-center text-xs mb-1.5">' +
+          '<div><div class="font-bold text-white">' + it.method + '</div><div class="text-neutral-500 text-[10px]">' + it.time + ' · Mã: ' + it.id + '</div></div>' +
+          '<div class="text-right font-bold text-emerald-400">+' + formatVND(it.amount) + '<div class="mt-0.5">' + badge + '</div></div>' +
+        '</div>';
+      }
+      c.innerHTML = html;
+    }
+
+    // ================= RÚT TIỀN =================
+    var currentWithdrawChannel = 'bank';
+
+    function switchWithdrawChannel(ch) {
+      playSfx('click');
+      currentWithdrawChannel = ch;
+      var bBank = document.getElementById('btnWithChBank');
+      var bMomo = document.getElementById('btnWithChMomo');
+      var bCard = document.getElementById('btnWithChCard');
+
+      var fBank = document.getElementById('withFieldsBank');
+      var fMomo = document.getElementById('withFieldsMomo');
+      var fCard = document.getElementById('withFieldsCard');
+
+      var on = "flex-1 py-1 rounded-lg text-[11px] font-bold btn-gold";
+      var off = "flex-1 py-1 rounded-lg text-[11px] font-bold text-neutral-400 bg-black/40 border border-[#e6b94d]/20";
+
+      if (bBank) bBank.className = off;
+      if (bMomo) bMomo.className = off;
+      if (bCard) bCard.className = off;
+
+      if (fBank) fBank.classList.add('hidden');
+      if (fMomo) fMomo.classList.add('hidden');
+      if (fCard) fCard.classList.add('hidden');
+
+      if (ch === 'bank') {
+        if (bBank) bBank.className = on;
+        if (fBank) fBank.classList.remove('hidden');
+      } else if (ch === 'momo') {
+        if (bMomo) bMomo.className = on;
+        if (fMomo) fMomo.classList.remove('hidden');
+      } else if (ch === 'card') {
+        if (bCard) bCard.className = on;
+        if (fCard) fCard.classList.remove('hidden');
+      }
+    }
+
+    function switchWithdrawTab(tab) {
+      playSfx('click');
+      var form = document.getElementById('subWithdrawForm');
+      var hist = document.getElementById('subWithdrawHist');
+      var bForm = document.getElementById('btnWithTabForm');
+      var bHist = document.getElementById('btnWithTabHist');
+
+      var on = "flex-1 py-1.5 rounded-lg text-xs font-bold btn-gold";
+      var off = "flex-1 py-1.5 rounded-lg text-xs font-bold text-neutral-400 bg-black/40 border border-[#e6b94d]/20";
+
+      if (tab === 'form') {
+        if (form) form.classList.remove('hidden');
+        if (hist) hist.classList.add('hidden');
+        if (bForm) bForm.className = on;
+        if (bHist) bHist.className = off;
+      } else {
+        if (form) form.classList.add('hidden');
+        if (hist) hist.classList.remove('hidden');
+        if (bForm) bForm.className = off;
+        if (bHist) bHist.className = on;
+        renderWithdrawHist();
+      }
+    }
+
+    function handleWithdraw() {
+      playSfx('click');
+      if (!requireLogin("rút tiền")) return;
+
+      var cfg = getSysConfig();
+
+      if (cfg.forceWithdrawClose) {
+        showToast("⚠️ Cổng rút tiền đang tạm đóng để đối soát hệ thống. Vui lòng quay lại sau!");
+        return;
+      }
+
+      if (!db.activePackages || db.activePackages.length === 0) {
+        showToast("⚠️ Bạn cần đầu tư ít nhất 1 gói sản phẩm để kích hoạt quyền rút tiền!");
+        return;
+      }
+
+      var vnNow = getVNTime();
+      var currentHour = vnNow.getHours();
+      var sHour = cfg.withStartHour || 7;
+      var eHour = cfg.withEndHour || 22;
+      if (currentHour < sHour || currentHour >= eHour) {
+        showToast("⏰ Thời gian rút tiền là từ " + padZero(sHour) + ":00 đến " + padZero(eHour) + ":00 hàng ngày!");
+        return;
+      }
+
+      var minW = cfg.minWithdraw || 30000;
+      var amtInput = document.getElementById('withAmount');
+      var amount = Number(amtInput ? amtInput.value : 0);
+      if (!amount || amount < minW) {
+        showToast("Số tiền rút tối thiểu là " + formatVND(minW) + "!");
+        return;
+      }
+      if (amount > db.balance) {
+        showToast("Số dư khả dụng không đủ!");
+        return;
+      }
+
+      var methodDetail = "";
+      var isCardRedeem = false;
+      if (currentWithdrawChannel === 'bank') {
+        var bankName = document.getElementById('withBankName').value;
+        var bankAcc = document.getElementById('withBankAcc').value.trim();
+        var bankUser = document.getElementById('withBankUser').value.trim();
+        if (!bankAcc || !bankUser) {
+          showToast("Vui lòng nhập đủ Số TK và Tên chủ tài khoản!");
+          return;
+        }
+        methodDetail = bankName + " · " + bankAcc + " (" + bankUser.toUpperCase() + ")";
+      } else if (currentWithdrawChannel === 'momo') {
+        var momoType = document.getElementById('withMomoType').value;
+        var momoPhone = document.getElementById('withMomoPhone').value.trim();
+        var momoName = document.getElementById('withMomoName').value.trim();
+        if (!momoPhone || !momoName) {
+          showToast("Vui lòng nhập SĐT Ví và Tên chủ ví!");
+          return;
+        }
+        methodDetail = momoType + " · " + momoPhone + " (" + momoName.toUpperCase() + ")";
+      } else if (currentWithdrawChannel === 'card') {
+        var cardTelco = document.getElementById('withCardTelco').value;
+        methodDetail = "Đổi Thẻ Cào " + cardTelco + " (" + formatVND(amount) + ")";
+        isCardRedeem = true;
+      }
+
+      var feePercent = cfg.withFeePercent || 7;
+      var fee = Math.floor(amount * (feePercent / 100));
+      var net = amount - fee;
+
+      db.balance -= amount;
+      var wId = "WD" + Math.floor(1000 + Math.random() * 9000);
+      var record = {
+        id: wId,
+        method: methodDetail,
+        amount: amount,
+        fee: fee,
+        isCard: isCardRedeem,
+        cardPin: "",
+        cardSerial: "",
+        time: "Vừa xong",
+        status: "PENDING"
+      };
+      if (!db.withdrawHist) db.withdrawHist = [];
+      db.withdrawHist.unshift(record);
+      db.transactions.unshift({ id: wId, type: "Rút tiền (" + methodDetail + ")", time: "Vừa xong", amount: amount, sign: "-", status: "PENDING" });
+
+      sendTelegramAlert("🏦 <b>[LuxeGlow] THÔNG BÁO LỆNH RÚT TIỀN MỚI</b>\n━━━━━━━━━━━━━━━━━━\n👤 Tài khoản: <code>" + db.phone + "</code>\n🏦 Kênh nhận: " + methodDetail + "\n💰 Số tiền rút: <b>" + formatVND(amount) + "</b>\n💸 Phí " + feePercent + "%: " + formatVND(fee) + "\n💵 Thực nhận: <b>" + formatVND(net) + "</b>\n🆔 Mã lệnh: <code>" + wId + "</code>\n📌 Trạng thái: Chờ Admin xét duyệt");
+
+      save();
+      updateBalanceDisplay();
+      if (amtInput) amtInput.value = '';
+      switchWithdrawTab('hist');
+      showToast("⏳ Đã gửi lệnh rút tiền! Đơn đang chờ Admin duyệt.");
+    }
+
+    function renderWithdrawHist() {
+      var c = document.getElementById('withdrawHistList');
+      if (!c) return;
+      var arr = (isUserLoggedIn() && db.withdrawHist) ? db.withdrawHist : [];
+      if (arr.length === 0) { c.innerHTML = '<div class="text-center py-4 text-xs text-neutral-500">Chưa có lịch sử rút</div>'; return; }
+      var html = '';
+      for (var i = 0; i < arr.length; i++) {
+        var it = arr[i];
+        var isAppr = it.status === 'APPROVED';
+        var badge = isAppr ? '<span class="text-emerald-400 font-bold text-[10px]">Thành công ✓</span>'
+                           : '<span class="text-amber-400 font-medium text-[10px]">Đang xử lý ⏳</span>';
+
+        var cardCodeBox = '';
+        if (it.cardPin) {
+          cardCodeBox = '<div class="mt-1.5 p-2 rounded-lg bg-amber-500/10 border border-amber-500/30 text-[10px] font-mono text-[#ffd700]">' +
+            '<div>🏷️ Mã Thẻ PIN: <b class="text-white select-all">' + it.cardPin + '</b></div>' +
+            '<div>🏷️ Số Seri: <b class="text-white select-all">' + (it.cardSerial || "N/A") + '</b></div>' +
+          '</div>';
+        }
+
+        html += '<div class="p-2.5 rounded-xl bg-black/50 border border-[#e6b94d]/20 text-xs mb-2">' +
+          '<div class="flex justify-between items-center">' +
+            '<div><div class="font-bold text-white">' + it.method + '</div><div class="text-neutral-500 text-[10px]">' + it.time + ' · Mã: ' + it.id + '</div></div>' +
+            '<div class="text-right"><div class="font-bold text-rose-400">-' + formatVND(it.amount) + '</div><div class="mt-0.5">' + badge + '</div></div>' +
+          '</div>' +
+          cardCodeBox +
+        '</div>';
+      }
+      c.innerHTML = html;
+    }
+
+    // ================= NHẬP GIFTCODE & VOUCHER LẺ =================
+    function handleClaimGiftcode() {
+      playSfx('click');
+      if (!requireLogin("nhập mã đổi thưởng")) return;
+
+      var inp = document.getElementById('giftcodeInput');
+      var code = (inp ? inp.value : "").trim().toUpperCase();
+      if (!code) {
+        showToast("Vui lòng nhập mã Giftcode hoặc Voucher!");
+        return;
+      }
+
+      var cfg = getSysConfig();
+      var activeCodes = cfg.giftcodes || {};
+      var activeVoucherCodes = cfg.voucherCodes || {};
+
+      if (activeCodes[code]) {
+        if (!db.claimedCodes) db.claimedCodes = [];
+        if (db.claimedCodes.indexOf(code) !== -1) {
+          showToast("Bạn đã nhận mã quà tặng này rồi!");
+          return;
+        }
+
+        var rew = activeCodes[code];
+        db.claimedCodes.push(code);
+        db.balance += rew;
+        db.transactions.unshift({
+          id: "CODE" + Math.floor(1000 + Math.random() * 9000),
+          type: "Giftcode: " + code,
+          time: "Vừa xong",
+          amount: rew,
+          sign: "+",
+          status: "APPROVED"
+        });
+
+        if (rew >= 50000) {
+          sendTelegramAlert("🎁 <b>[LuxeGlow] NHẬP GIFTCODE THÀNH CÔNG (≥ 50K)</b>\n━━━━━━━━━━━━━━━━━━\n👤 Tài khoản: <code>" + db.phone + "</code>\n🎟️ Mã Code: <b>" + code + "</b>\n💰 Tiền thưởng: <b>+" + formatVND(rew) + "</b>");
+        }
+
+        save();
+        updateBalanceDisplay();
+        if (inp) inp.value = '';
+        playSfx('coin');
+        showToast("🎉 Nhận thành công +" + formatVND(rew) + " từ Giftcode!");
+        return;
+      }
+
+      if (activeVoucherCodes[code]) {
+        if (!db.claimedCodes) db.claimedCodes = [];
+        if (db.claimedCodes.indexOf("VOUCHER_" + code) !== -1) {
+          showToast("Bạn đã kích hoạt mã Voucher này rồi!");
+          return;
+        }
+
+        var vType = activeVoucherCodes[code];
+        db.claimedCodes.push("VOUCHER_" + code);
+        if (!db.vouchers) db.vouchers = [];
+        db.vouchers.push(vType);
+
+        var vName = "Voucher Ưu Đãi";
+        if (vType === 'DISCOUNT_99') vName = "Voucher Giảm 99% Nạp";
+        else if (vType === 'X2_DEPOSIT') vName = "Phiếu Nạp x2 Tiền Vào Ví";
+        else if (vType === 'DISCOUNT_50') vName = "Voucher Giảm 50% Nạp";
+        else if (vType === 'BONUS_20') vName = "Phiếu Thưởng Thêm 20% Nạp";
+        else if (vType === 'DISCOUNT_30') vName = "Voucher Giảm 30% Nạp";
+        else if (vType === 'X15_DEPOSIT') vName = "Phiếu Nạp x1.5 Vào Ví";
+
+        save();
+        updateBalanceDisplay();
+        if (inp) inp.value = '';
+        playSfx('coin');
+        showToast("🎟️ Nhận thành công: " + vName + "!");
+        return;
+      }
+
+      showToast("Mã Giftcode/Voucher không hợp lệ hoặc đã hết hạn!");
+    }
+
+    // --- PHÚC LỢI & ĐIỂM DANH ---
+    function doCheckin() {
+      playSfx('click');
+      if (!requireLogin("điểm danh nhận thưởng")) return;
+
+      var today = getVNDateString(getVNTime());
+      if (db.lastCheckinDate === today) {
+        showToast("Hôm nay bạn đã điểm danh rồi!");
+        return;
+      }
+      var rewards = [2500, 4000, 5000, 6000, 7500, 10000, 15000];
+      var idx = (db.streak || 0) % 7;
+      var rew = rewards[idx];
+      db.streak = (db.streak || 0) + 1;
+      db.lastCheckinDate = today;
+      db.balance += rew;
+      save();
+      updateBalanceDisplay();
+      playSfx('coin');
+      showToast("✓ Điểm danh nhận +" + formatVND(rew));
+    }
+
+    function renderDailyTasks() {
+      var container = document.getElementById('dailyTaskList');
+      if (!container) return;
+      var f1Count = isUserLoggedIn() ? (db.dailyF1Count || 0) : 0;
+
+      var html = '';
+      for (var i = 0; i < dailyTaskTiers.length; i++) {
+        var task = dailyTaskTiers[i];
+        var isEligible = isUserLoggedIn() && (f1Count >= task.target);
+        var statusBadge = isEligible ? '<span class="btn-ready-gold px-2.5 py-1.5 rounded-xl text-[10px] font-bold">Chờ chốt 23:59</span>'
+                                     : '<button onclick="if(!isUserLoggedIn()){requireLogin(\'thực hiện nhiệm vụ\');}" class="btn-locked px-3 py-1.5 rounded-xl font-bold text-[11px]">Chưa Đạt</button>';
+        html += '<div class="p-3 rounded-2xl bg-black/40 border border-[#e6b94d]/20 flex items-center justify-between mb-2">' +
+          '<div>' +
+            '<div class="font-bold text-white text-xs">' + task.label + '</div>' +
+            '<div class="text-[11px] text-[#f5d77f] font-black mt-0.5">Thưởng: +' + task.rewText + '</div>' +
+            '<div class="text-[10px] text-neutral-500 mt-1">Tiến độ: ' + f1Count + '/' + task.target + ' F1</div>' +
+          '</div>' +
+          '<div>' + statusBadge + '</div>' +
+        '</div>';
+      }
+      container.innerHTML = html;
+    }
+
+    function renderWeeklySalary() {
+      var container = document.getElementById('weeklySalaryList');
+      if (!container) return;
+      var teamCount = isUserLoggedIn() ? (db.weeklyTeamCount || 0) : 0;
+
+      var html = '';
+      for (var i = 0; i < weeklySalaryTiers.length; i++) {
+        var t = weeklySalaryTiers[i];
+        var isEligible = isUserLoggedIn() && (teamCount >= t.target);
+        var statusBadge = isEligible ? '<span class="btn-ready-gold px-2.5 py-1.5 rounded-xl text-[10px] font-bold">Chờ chốt CN</span>'
+                                     : '<button onclick="if(!isUserLoggedIn()){requireLogin(\'nhận lương tuần\');}" class="btn-locked px-3 py-1.5 rounded-xl font-bold text-[11px]">Chưa Đạt</button>';
+        html += '<div class="p-3 rounded-2xl bg-black/40 border border-[#e6b94d]/20 flex items-center justify-between mb-2">' +
+          '<div>' +
+            '<div class="font-bold text-white text-xs">' + t.label + '</div>' +
+            '<div class="text-[11px] text-[#f5d77f] font-black mt-0.5">Lương tuần: ' + t.rewText + '</div>' +
+            '<div class="text-[10px] text-neutral-500 mt-1">Tiến độ: ' + teamCount + '/' + t.target + ' người</div>' +
+          '</div>' +
+          '<div>' + statusBadge + '</div>' +
+        '</div>';
+      }
+      container.innerHTML = html;
+    }
+
+    function renderTeamMembersList() {
+      var container = document.getElementById('teamMembersList');
+      if (!container) return;
+      if (!isUserLoggedIn()) {
+        container.innerHTML = '<div class="text-center py-4 text-xs text-neutral-500">Vui lòng đăng nhập để xem danh sách đội nhóm.</div>';
+        return;
+      }
+      var refs = db.refs || [];
+      if (refs.length === 0) {
+        container.innerHTML = '<div class="text-center py-4 text-xs text-neutral-500">Chưa có thành viên nào trong đội nhóm.</div>';
+        return;
+      }
+      var html = '';
+      for (var i = 0; i < refs.length; i++) {
+        var r = refs[i];
+        var badge = r.isPaid 
+          ? '<span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">Đã nạp (' + formatVND(r.deposited) + ')</span>'
+          : '<span class="px-2 py-0.5 rounded-full bg-neutral-800 text-neutral-400 text-[10px] font-bold">Chưa nạp</span>';
+        html += '<div class="p-2.5 rounded-xl bg-black/50 border border-[#e6b94d]/20 flex items-center justify-between text-xs mb-1.5">' +
+          '<div>' +
+            '<div class="font-bold text-white flex items-center space-x-1.5">' +
+              '<span>' + maskPhone(r.phone) + '</span>' +
+              '<span class="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 text-[9px] font-extrabold">' + r.tier + '</span>' +
+            '</div>' +
+            '<div class="text-neutral-500 text-[10px] mt-0.5">Tham gia: ' + (r.joined || "Gần đây") + '</div>' +
+          '</div>' +
+          '<div>' + badge + '</div>' +
+        '</div>';
+      }
+      container.innerHTML = html;
+    }
+
+    function renderTransactionsHistory() {
+      var c = document.getElementById('txHistoryList');
+      if (!c) return;
+      if (!isUserLoggedIn()) {
+        c.innerHTML = '<div class="text-center py-4 text-xs text-neutral-500">Vui lòng đăng nhập để xem lịch sử giao dịch.</div>';
+        return;
+      }
+      var arr = db.transactions || [];
+      if (arr.length === 0) {
+        c.innerHTML = '<div class="text-center py-4 text-xs text-neutral-500">Chưa có biến động số dư</div>';
+        return;
+      }
+      var html = '';
+      for (var i = 0; i < arr.length; i++) {
+        var tx = arr[i];
+        var isPlus = tx.sign === '+';
+        html += '<div class="p-2.5 rounded-xl bg-black/50 border border-[#e6b94d]/20 flex justify-between items-center text-xs mb-1.5">' +
+          '<div>' +
+            '<div class="font-bold text-white text-xs">' + tx.type + '</div>' +
+            '<div class="text-neutral-500 text-[10px] mt-0.5">' + tx.time + ' · Mã: ' + tx.id + '</div>' +
+          '</div>' +
+          '<div class="text-right font-extrabold ' + (isPlus ? 'text-emerald-400' : 'text-rose-400') + '">' +
+            tx.sign + formatVND(tx.amount) +
+          '</div>' +
+        '</div>';
+      }
+      c.innerHTML = html;
+    }
+
+    function renderMyVouchers() {
+      var c = document.getElementById('myVouchersList');
+      if (!c) return;
+      if (!isUserLoggedIn()) {
+        c.innerHTML = '<div class="text-center py-3 text-xs text-neutral-500">Vui lòng đăng nhập để quản lý voucher</div>';
+        return;
+      }
+      var vList = db.vouchers || [];
+      if (vList.length === 0) {
+        c.innerHTML = '<div class="text-center py-3 text-xs text-neutral-500">Bạn chưa có voucher ưu đãi nào</div>';
+        return;
+      }
+      var html = '';
+      for (var i = 0; i < vList.length; i++) {
+        var v = vList[i];
+        var title = "🎟️ Voucher Ưu Đãi";
+        var desc = "Áp dụng khi nạp tiền";
+        if (v === 'DISCOUNT_99') { title = '⚡ Voucher Giảm 99% Nạp'; desc = 'Chỉ cần chuyển 1% giá trị nạp'; }
+        else if (v === 'X2_DEPOSIT') { title = '🔥 Phiếu Nạp x2 Tiền Vào Ví'; desc = 'Nhân đôi số dư thực nhận vào ví'; }
+        else if (v === 'DISCOUNT_50') { title = '💎 Voucher Giảm 50% Nạp'; desc = 'Giảm một nửa số tiền cần thanh toán'; }
+        else if (v === 'BONUS_20') { title = '🎁 Phiếu Thưởng Thêm 20% Nạp'; desc = 'Cộng thêm 20% vào số dư nạp'; }
+        else if (v === 'DISCOUNT_30') { title = '✨ Voucher Giảm 30% Nạp'; desc = 'Thanh toán 70% giá trị nạp'; }
+        else if (v === 'X15_DEPOSIT') { title = '🚀 Phiếu Nạp x1.5 Vào Ví'; desc = 'Nhận gấp 1.5 lần tiền vào ví'; }
+
+        html += '<div class="p-2.5 rounded-xl bg-amber-500/10 border border-[#e6b94d]/40 flex justify-between items-center text-xs mb-1.5">' +
+          '<div>' +
+            '<div class="font-extrabold text-[#ffd700]">' + title + '</div>' +
+            '<div class="text-[10px] text-neutral-300 mt-0.5">' + desc + '</div>' +
+          '</div>' +
+          '<button onclick="switchTab(\'home\'); openModal(\'modalDeposit\');" class="px-2.5 py-1 rounded-lg btn-gold text-[10px] font-black uppercase">Dùng</button>' +
+        '</div>';
+      }
+      c.innerHTML = html;
+    }
+
+    function updateBalanceDisplay() {
+      var logged = isUserLoggedIn();
+      var topBal = document.getElementById('topBalance');
+      var meBal = document.getElementById('meBalance');
+      if (topBal) topBal.innerText = logged ? formatVND(db.balance || 0) : "0 đ";
+      if (meBal) meBal.innerText = logged ? formatVND(db.balance || 0) : "0 đ";
+
+      var authBtnHeader = document.getElementById('btnAuthHeader');
+      if (authBtnHeader) {
+        authBtnHeader.innerText = logged ? "Tài Khoản" : "Đăng Nhập";
+      }
+
+      var mePhoneEl = document.getElementById('mePhoneDisplay');
+      if (mePhoneEl) mePhoneEl.innerText = logged ? maskPhone(db.phone) : "Chưa đăng nhập";
+
+      var meNameEl = document.getElementById('meNameDisplay');
+      if (meNameEl) meNameEl.innerText = logged ? "Hội Viên LuxeGlow" : "Khách Thăm Quan";
+
+      var authMeActionBtn = document.getElementById('authMeActionBtn');
+      if (authMeActionBtn) {
+        if (logged) {
+          authMeActionBtn.innerText = "Đăng Xuất";
+          authMeActionBtn.className = "px-3 py-1.5 rounded-xl bg-red-950/40 border border-red-500/40 text-red-400 text-xs font-bold cursor-pointer";
+          authMeActionBtn.onclick = handleLogout;
+        } else {
+          authMeActionBtn.innerText = "Đăng Nhập Ngay";
+          authMeActionBtn.className = "px-3 py-1.5 rounded-xl btn-gold text-xs font-bold cursor-pointer";
+          authMeActionBtn.onclick = function() { openAuthModalDirect('login'); };
+        }
+      }
+
+      var myInviteCodeEl = document.getElementById('myInviteCodeDisplay');
+      if (myInviteCodeEl) myInviteCodeEl.innerText = logged ? db.phone : "Chưa đăng nhập";
+
+      var vipLv = logged ? getVipLevel(db.totalDeposited || 0) : 0;
+      var topVip = document.getElementById('topVipBadge');
+      var meVip = document.getElementById('meVipBadge');
+      if (topVip) topVip.innerText = "VIP " + vipLv;
+      if (meVip) meVip.innerText = "VIP " + vipLv;
+
+      var meTotalDep = document.getElementById('meTotalDep');
+      if (meTotalDep) meTotalDep.innerText = logged ? formatVND(db.totalDeposited || 0) : "0 đ";
+
+      var meActivePkgCount = document.getElementById('meActivePkgCount');
+      if (meActivePkgCount) meActivePkgCount.innerText = (logged && db.activePackages ? db.activePackages.length : 0) + " Gói";
+
+      var vSelect = document.getElementById('depVoucherSelect');
+      if (vSelect) {
+        var opts = '<option value="NONE">Không sử dụng ưu đãi</option>';
+        if (logged && db.vouchers && db.vouchers.length > 0) {
+          for (var i = 0; i < db.vouchers.length; i++) {
+            var v = db.vouchers[i];
+            if (v === 'DISCOUNT_99') opts += '<option value="DISCOUNT_99">⚡ Voucher Giảm 99% Mọi Đơn Nạp</option>';
+            else if (v === 'X2_DEPOSIT') opts += '<option value="X2_DEPOSIT">🔥 Phiếu Nạp x2 Tiền Vào Ví</option>';
+            else if (v === 'DISCOUNT_50') opts += '<option value="DISCOUNT_50">💎 Voucher Giảm 50% Tiền Nạp</option>';
+            else if (v === 'BONUS_20') opts += '<option value="BONUS_20">🎁 Phiếu Thưởng Thêm 20% Nạp</option>';
+            else if (v === 'DISCOUNT_30') opts += '<option value="DISCOUNT_30">✨ Voucher Giảm 30% Tiền Nạp</option>';
+            else if (v === 'X15_DEPOSIT') opts += '<option value="X15_DEPOSIT">🚀 Phiếu Nạp x1.5 Tiền Vào Ví</option>';
+          }
+        }
+        vSelect.innerHTML = opts;
+      }
+
+      var today = getVNDateString(getVNTime());
+      var checkinBtn = document.getElementById('btnDoCheckin');
+      if (checkinBtn) {
+        if (!logged) {
+          checkinBtn.innerText = "Đăng Nhập Để Điểm Danh";
+          checkinBtn.className = "w-full btn-gold-outline py-2 rounded-xl font-bold text-xs uppercase";
+        } else if (db.lastCheckinDate === today) {
+          checkinBtn.innerText = "Đã Điểm Danh Hôm Nay";
+          checkinBtn.className = "w-full btn-locked py-2.5 rounded-xl font-bold text-xs uppercase";
+        } else {
+          checkinBtn.innerText = "Điểm Danh Hôm Nay";
+          checkinBtn.className = "w-full btn-gold py-2.5 rounded-xl font-black text-xs uppercase";
+        }
+      }
+
+      renderDailyTasks();
+      renderWeeklySalary();
+      renderTeamMembersList();
+      renderTransactionsHistory();
+      renderMyVouchers();
+    }
+
+    function initAppUI() {
+      renderPackagesList('homePackagesList', true);
+      renderPackagesList('packagesFullList', false);
+      renderActivePackagesList();
+      renderGiftBoxes();
+      if (isUserLoggedIn()) {
+        checkVNSettlements();
+      }
+      updateBalanceDisplay();
+    }
+
+    window.addEventListener('DOMContentLoaded', function() {
+      fetchClientIp();
+      checkServerStatus();
+      loadUsersDb();
+      generateCaptcha();
+      checkUrlRefParam();
+
+      var saved = localStorage.getItem(CURRENT_USER_KEY);
+      if (saved && usersDb[saved]) {
+        loadCurrentUserData(saved);
+        hideAuthModal();
+      } else {
+        currentLoggedInPhone = null;
+        db = Object.assign({}, guestDefaultData);
+        showAuthModal();
+        switchAuthTab('register');
+      }
+
+      initAppUI();
+      updateCountdowns();
+      setInterval(updateCountdowns, 1000);
+      setInterval(checkServerStatus, 2000);
+    });
+  </script>
+</head>
+<body>
+
+  <!-- ROOT CHUẨN FLEX COLUMN DI ĐỘNG -->
+  <div id="appRoot">
+
+    <!-- OVERLAY BẢO TRÌ TOÀN SÀN -->
+    <div id="serverMaintenanceOverlay" class="fixed inset-0 bg-[#050402] z-[9999999] flex flex-col items-center justify-center p-6 text-center space-y-4 hidden">
+      <div class="w-16 h-16 rounded-2xl gold-box flex items-center justify-center text-3xl animate-pulse">🛠️</div>
+      <div class="font-luxury font-black text-xl gold-text">HỆ THỐNG ĐANG BẢO TRÌ</div>
+      <p id="serverMaintMessage" class="text-xs text-neutral-300 max-w-xs leading-relaxed">
+        Hệ thống đang bảo trì nâng cấp máy chủ cGMP ASEAN. Quý khách vui lòng quay lại sau ít phút!
+      </p>
+      <div class="text-[10px] text-neutral-500 font-mono">Trạng thái: Máy chủ tạm ngưng nhận yêu cầu</div>
+    </div>
+
+    <!-- TOAST THÔNG BÁO -->
+    <div id="toast" class="fixed top-4 left-1/2 -translate-x-1/2 z-[999999] px-4 py-2 rounded-2xl bg-[#ffd700] text-black font-extrabold text-xs shadow-2xl transition-opacity duration-300 opacity-0 pointer-events-none hidden">
+      Thông báo
+    </div>
+
+    <!-- HEADER CỐ ĐỊNH TRÊN CÙNG -->
+    <header class="flex-shrink-0 w-full px-3.5 py-2.5 border-b border-[#e6b94d]/25 bg-[#0f0c07]/95">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <div class="w-8 h-8 rounded-xl gold-box flex items-center justify-center text-[#ffd700] font-black text-sm">✦</div>
+          <div>
+            <h1 class="font-luxury font-black text-xs tracking-wider gold-text leading-tight">LUXEGLOW</h1>
+            <div class="text-[8px] text-[#aa771c] font-bold uppercase tracking-widest leading-none">cGMP CAPITAL</div>
+          </div>
+        </div>
+        <div class="flex items-center space-x-1.5">
+          <a href="https://t.me/luxeglowcgmp" target="_blank" class="px-2 py-1 rounded-full bg-blue-900/60 border border-blue-500/50 text-blue-300 text-[10px] font-bold flex items-center space-x-1">
+            <span>💬</span><span>Nhóm Tele</span>
+          </a>
+          <button id="btnAuthHeader" onclick="openAuthModalDirect()" class="px-2.5 py-1 rounded-full btn-gold text-[10px] font-black uppercase">
+            Đăng Nhập
+          </button>
+          <div id="topVipBadge" class="px-2 py-0.5 rounded-full gold-box text-[9px] font-extrabold text-[#f5d77f]">VIP 0</div>
+          <div class="px-2.5 py-1 rounded-full bg-black/60 border border-[#e6b94d]/40 text-[11px] font-black text-[#ffd700] flex items-center space-x-1">
+            <span>💰</span>
+            <span id="topBalance">0 đ</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- NỘI DUNG CUỘN Ở GIỮA -->
+    <div id="mainScrollArea">
+
+      <!-- ================= TAB 1: TRANG CHỦ ================= -->
+      <div id="tab-home" class="space-y-3.5">
+        <div class="gold-box rounded-3xl p-4 relative overflow-hidden">
+          <span class="inline-block px-2.5 py-0.5 rounded-full text-[9px] font-extrabold bg-[#e6b94d]/20 border border-[#e6b94d]/40 text-[#f5d77f] mb-1.5">
+            QUỸ ĐẦU TƯ DƯỢC MỸ PHẨM CGMP 2026
+          </span>
+          <h2 class="text-base font-black text-white">LuxeGlow Capital</h2>
+          <p class="text-xs text-neutral-300 leading-relaxed mt-1">
+            Nền tảng chuỗi cung ứng dược mỹ phẩm sinh học & gia công OEM đạt chuẩn cGMP ASEAN. Hoàn vốn & lãi <span class="text-[#f5d77f] font-bold">13.0% / ngày</span> trong <span class="text-[#f5d77f] font-bold">90 ngày</span> (Tổng thu nhập 1.170%). Lần nhận lãi đầu tiên sau đúng 24h.
+          </p>
+          <div class="mt-3 flex items-center space-x-2">
+            <button onclick="openModal('modalLegalInfo')" class="btn-gold-outline px-3 py-1.5 rounded-xl text-xs font-bold flex items-center space-x-1">
+              <span>📖 Xem Pháp Lý ›</span>
+            </button>
+            <a href="https://t.me/luxeglowcgmp" target="_blank" class="px-3 py-1.5 rounded-xl bg-blue-900/40 border border-blue-500/40 text-blue-300 text-xs font-bold flex items-center space-x-1">
+              <span>💬 Nhóm Telegram</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- MỞ HỘP QUÀ TÂN THỦ BANNER -->
+        <div class="gold-box rounded-2xl p-3.5 flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-xl">🎁</div>
+            <div>
+              <div class="text-xs font-extrabold text-white">Phần Thưởng Thành Viên Mới</div>
+              <div class="text-[10px] text-neutral-400">Mở hộp quà may mắn trúng tiền mặt lên đến 88k & Voucher!</div>
+            </div>
+          </div>
+          <button onclick="switchTab('welfare')" class="btn-gold px-3.5 py-1.5 rounded-xl text-xs font-bold shrink-0">Mở Quà</button>
+        </div>
+
+        <!-- NẠP RÚT NHANH -->
+        <div class="grid grid-cols-2 gap-2.5">
+          <button onclick="openModal('modalDeposit')" class="gold-box rounded-2xl p-3.5 text-center space-y-1 active:scale-95 transition-transform">
+            <div class="text-2xl">💳</div>
+            <div class="font-extrabold text-xs text-white">Nạp Tiền</div>
+            <div class="text-[9px] text-neutral-400">Chuyển Khoản & Thẻ Cào (Phí 15%)</div>
+          </button>
+          <button onclick="openModal('modalWithdraw')" class="gold-box rounded-2xl p-3.5 text-center space-y-1 active:scale-95 transition-transform">
+            <div class="text-2xl">🏦</div>
+            <div class="font-extrabold text-xs text-white">Rút Tiền</div>
+            <div class="text-[9px] text-neutral-400">Ngân Hàng · MoMo · Thẻ Cào</div>
+          </button>
+        </div>
+
+        <!-- Ô NHẬP GIFTCODE & VOUCHER TRANG CHỦ -->
+        <div class="gold-box rounded-2xl p-3 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-[#f5d77f]">🎁 Nhập Giftcode / Voucher</span>
+            <span class="text-[10px] text-neutral-400">Mã quà tặng & ưu đãi nạp</span>
+          </div>
+          <div class="flex items-center space-x-2">
+            <input id="giftcodeInput" type="text" placeholder="Nhập mã Giftcode hoặc Voucher..." class="flex-1 bg-black/60 border border-[#e6b94d]/40 rounded-xl px-3 py-1.5 text-xs text-white uppercase placeholder-neutral-500" />
+            <button onclick="handleClaimGiftcode()" class="btn-gold px-4 py-1.5 rounded-xl text-xs font-black uppercase">Nhận</button>
+          </div>
+        </div>
+
+        <!-- HỆ SINH THÁI & DỊCH VỤ CUNG ỨNG -->
+        <div class="gold-box rounded-2xl p-4 space-y-2.5">
+          <div class="text-xs font-black text-[#f5d77f] uppercase flex items-center space-x-1">
+            <span>💎 HỆ SINH THÁI & DỊCH VỤ CUNG ỨNG</span>
+          </div>
+          <div class="space-y-2 text-xs text-neutral-300">
+            <div class="p-2.5 rounded-xl bg-black/40 border border-[#e6b94d]/15">
+              <span class="font-bold text-white">1. Nghiên cứu & Chiết xuất Hoạt tính Sinh học:</span> Hợp tác trực tiếp cùng phòng R&D tại Thụy Sĩ thương mại hóa Retinol bọc Liposome & Peptide vi sinh.
+            </div>
+            <div class="p-2.5 rounded-xl bg-black/40 border border-[#e6b94d]/15">
+              <span class="font-bold text-white">2. Chuỗi Gia Công Chuẩn cGMP ASEAN:</span> Nhà máy phòng sạch Class 10.000 cùng các bồn phản ứng đồng hóa hút chân không nhập khẩu châu Âu.
+            </div>
+          </div>
+        </div>
+
+        <!-- DANH SÁCH GÓI TÓM TẮT -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between px-1">
+            <div class="text-xs font-black text-[#f5d77f] uppercase">Gói Sản Phẩm (Lãi 13%/ngày · 90 ngày)</div>
+            <button onclick="switchTab('packages')" class="text-[10px] text-[#aa771c] hover:text-[#ffd700] font-bold">Xem Tất Cả ›</button>
+          </div>
+          <div id="homePackagesList" class="space-y-2.5"></div>
+        </div>
+      </div>
+
+      <!-- ================= TAB 2: SẢN PHẨM ================= -->
+      <div id="tab-packages" class="space-y-3.5 hidden">
+        <div class="gold-box rounded-2xl p-3.5 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-[#f5d77f]">Gói Của Tôi Đang Chạy</span>
+            <span id="activePkgCountBadge" class="px-2 py-0.5 rounded-full bg-black/60 border border-[#e6b94d]/40 text-[10px] font-black text-[#ffd700]">0 / 8 Gói</span>
+          </div>
+          <div id="myActivePackagesList"></div>
+        </div>
+        <div class="text-xs font-black text-[#f5d77f] uppercase tracking-wider px-1">Tất Cả 8 Gói Đầu Tư</div>
+        <div id="packagesFullList" class="space-y-3"></div>
+      </div>
+
+      <!-- ================= TAB 3: PHÚC LỢI ================= -->
+      <div id="tab-welfare" class="space-y-3.5 hidden">
+        <div class="gold-box rounded-3xl p-4 text-center space-y-3">
+          <div>
+            <div class="text-2xl">🎁</div>
+            <h3 class="text-sm font-black text-white">Hộp Quà May Mắn Tân Thủ</h3>
+            <p class="text-[10px] text-neutral-400">Chạm vào hộp bí ẩn bất kỳ để mở quà tiền mặt & ưu đãi</p>
+          </div>
+          <div id="giftBoxesGrid" class="grid grid-cols-3 gap-2"></div>
+        </div>
+
+        <div class="gold-box rounded-3xl p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-black text-white uppercase">📅 ĐIỂM DANH NHẬN QUÀ 7 NGÀY</span>
+            <span class="text-[10px] text-[#f5d77f] font-bold">Chu kỳ 1 tuần</span>
+          </div>
+          <div class="grid grid-cols-4 gap-1.5 text-center text-xs">
+            <div class="p-1.5 rounded-xl bg-black/40 border border-[#e6b94d]/20"><div class="text-[9px] text-neutral-400">Ngày 1</div><div class="font-bold text-[#f5d77f]">+2.500 đ</div></div>
+            <div class="p-1.5 rounded-xl bg-black/40 border border-[#e6b94d]/20"><div class="text-[9px] text-neutral-400">Ngày 2</div><div class="font-bold text-[#f5d77f]">+4.000 đ</div></div>
+            <div class="p-1.5 rounded-xl bg-black/40 border border-[#e6b94d]/20"><div class="text-[9px] text-neutral-400">Ngày 3</div><div class="font-bold text-[#f5d77f]">+5.000 đ</div></div>
+            <div class="p-1.5 rounded-xl bg-black/40 border border-[#e6b94d]/20"><div class="text-[9px] text-neutral-400">Ngày 4</div><div class="font-bold text-[#f5d77f]">+6.000 đ</div></div>
+            <div class="p-1.5 rounded-xl bg-black/40 border border-[#e6b94d]/20"><div class="text-[9px] text-neutral-400">Ngày 5</div><div class="font-bold text-[#f5d77f]">+7.500 đ</div></div>
+            <div class="p-1.5 rounded-xl bg-black/40 border border-[#e6b94d]/20"><div class="text-[9px] text-neutral-400">Ngày 6</div><div class="font-bold text-[#f5d77f]">+10.000 đ</div></div>
+            <div class="p-1.5 rounded-xl col-span-2 bg-amber-500/10 border border-amber-500/40"><div class="text-[9px] text-amber-300 font-bold">Ngày 7 (Đặc biệt)</div><div class="font-black text-[#ffd700]">+15.000 đ</div></div>
+          </div>
+          <button id="btnDoCheckin" onclick="doCheckin()" class="w-full btn-gold py-2 rounded-xl font-black text-xs uppercase">Điểm Danh Hôm Nay</button>
+        </div>
+
+        <div class="gold-box rounded-3xl p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-black text-white uppercase">🎯 NHIỆM VỤ MỜI F1 TRONG NGÀY</span>
+            <div class="timer-badge px-2 py-0.5 rounded-full text-[10px] font-bold">
+              <span>⏳ Reset: </span><span id="dailyTaskTimer">00:00:00</span>
+            </div>
+          </div>
+          <div class="flex items-center justify-between text-[11px] text-neutral-400 px-0.5">
+            <span>Chỉ tính khi thành viên F1 nạp tiền trong ngày.</span>
+            <button onclick="openModal('modalDailyRules')" class="text-[#ffd700] underline font-bold">ℹ️ Thể Lệ</button>
+          </div>
+          <div id="dailyTaskList"></div>
+        </div>
+      </div>
+
+      <!-- ================= TAB 4: ĐỘI NHÓM ================= -->
+      <div id="tab-team" class="space-y-3.5 hidden">
+        <div class="gold-box rounded-3xl p-4 space-y-3">
+          <div class="text-xs font-bold text-neutral-400 uppercase">MÃ GIỚI THIỆU CỦA BẠN</div>
+          <div class="p-3 rounded-2xl bg-black/60 border border-[#e6b94d]/40 flex items-center justify-between">
+            <span id="myInviteCodeDisplay" class="font-mono text-base font-extrabold text-[#ffd700]">0988888888</span>
+            <div class="flex items-center space-x-1.5">
+              <button onclick="if(requireLogin('sao chép mã mời')){copyText(db.phone);}" class="px-2.5 py-1.5 rounded-xl bg-black/50 border border-[#e6b94d]/40 text-[#f5d77f] text-[11px] font-bold">Copy Mã</button>
+              <button onclick="copyInviteLink()" class="btn-gold px-3 py-1.5 rounded-xl text-xs font-bold">Copy Link</button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div class="p-3 rounded-2xl bg-black/40 border border-[#e6b94d]/20">
+              <div class="flex justify-between items-center text-neutral-400 text-[10px]">
+                <span>Tuyến F1</span>
+                <span class="text-[#f5d77f] font-bold">15.0%</span>
+              </div>
+              <div class="text-base font-black text-white mt-1">Hoa Hồng F1</div>
+              <div class="text-[9px] text-neutral-500 mt-0.5">Cộng trực tiếp khi F1 nạp tiền</div>
+            </div>
+            <div class="p-3 rounded-2xl bg-black/40 border border-[#e6b94d]/20">
+              <div class="flex justify-between items-center text-neutral-400 text-[10px]">
+                <span>Tuyến F2</span>
+                <span class="text-[#f5d77f] font-bold">5.0%</span>
+              </div>
+              <div class="text-base font-black text-white mt-1">Hoa Hồng F2</div>
+              <div class="text-[9px] text-neutral-500 mt-0.5">Cộng trực tiếp khi F2 nạp tiền</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="gold-box rounded-3xl p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-black text-white uppercase">💼 BẢNG LƯƠNG TUẦN ĐỘI NHÓM</span>
+            <div class="timer-badge px-2 py-0.5 rounded-full text-[10px] font-bold">
+              <span>⏳ Chốt: </span><span id="weeklySalaryTimer">0n 00:00:00</span>
+            </div>
+          </div>
+          <div class="flex items-center justify-between text-[11px] text-neutral-400 px-0.5">
+            <span>Tính tổng thành viên F1 + F2 nạp tiền trong tuần.</span>
+            <button onclick="openModal('modalWeeklyRules')" class="text-[#ffd700] underline font-bold">ℹ️ Thể Lệ</button>
+          </div>
+          <div id="weeklySalaryList"></div>
+        </div>
+
+        <div class="gold-box rounded-3xl p-4 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-black text-[#f5d77f] uppercase">👥 Danh Sách Đội Nhóm Của Tôi</span>
+            <span class="text-[10px] text-neutral-400">Tuyến dưới trực tiếp</span>
+          </div>
+          <div id="teamMembersList"></div>
+        </div>
+      </div>
+
+      <!-- ================= TAB 5: TÔI (CÁ NHÂN) ================= -->
+      <div id="tab-me" class="space-y-3.5 hidden">
+        <div class="gold-box rounded-3xl p-4 space-y-3.5">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <div class="w-12 h-12 rounded-full gold-box flex items-center justify-center text-xl font-black text-[#ffd700]">👤</div>
+              <div>
+                <div id="meNameDisplay" class="font-black text-xs text-white">Hội Viên LuxeGlow</div>
+                <div id="mePhoneDisplay" class="text-[11px] text-neutral-400 font-mono">098****888</div>
+              </div>
+            </div>
+            <button id="authMeActionBtn" onclick="handleLogout()" class="px-3 py-1.5 rounded-xl bg-red-950/40 border border-red-500/40 text-red-400 text-xs font-bold">
+              Đăng Xuất
+            </button>
+          </div>
+
+          <div class="p-3.5 rounded-2xl bg-black/60 border border-[#e6b94d]/30 space-y-2">
+            <div>
+              <div class="text-[10px] text-neutral-400 uppercase font-bold">Số Dư Khả Dụng</div>
+              <div id="meBalance" class="text-2xl font-black gold-text mt-0.5">0 đ</div>
+            </div>
+            <div class="grid grid-cols-3 gap-2 pt-2 border-t border-[#e6b94d]/20 text-center text-xs">
+              <div>
+                <div class="text-[9px] text-neutral-400">Tổng Nạp</div>
+                <div id="meTotalDep" class="font-bold text-[#f5d77f] mt-0.5">0 đ</div>
+              </div>
+              <div>
+                <div class="text-[9px] text-neutral-400">Cấp Bậc</div>
+                <div id="meVipBadge" class="font-bold text-[#ffd700] mt-0.5">VIP 0</div>
+              </div>
+              <div>
+                <div class="text-[9px] text-neutral-400">Gói Đang Chạy</div>
+                <div id="meActivePkgCount" class="font-bold text-emerald-400 mt-0.5">0 Gói</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="openModal('modalDeposit')" class="btn-gold py-2.5 rounded-xl font-black text-xs uppercase">Nạp Tiền</button>
+            <button onclick="openModal('modalWithdraw')" class="btn-gold-outline py-2.5 rounded-xl font-black text-xs uppercase">Rút Tiền</button>
+          </div>
+        </div>
+
+        <div class="gold-box rounded-2xl p-3.5 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-black text-[#f5d77f] uppercase">👑 LƯƠNG NGÀY CÁC CẤP VIP</span>
+            <span class="text-[9px] text-neutral-400">Cộng tự động 00:00 hàng ngày</span>
+          </div>
+          <div class="grid grid-cols-2 gap-1.5 text-xs">
+            <div class="p-2 rounded-xl bg-black/40 border border-[#e6b94d]/20">
+              <span class="text-neutral-400 text-[10px]">VIP 1 (Nạp ≥ 150k):</span>
+              <div class="font-bold text-[#f5d77f]">5.000 đ/ngày</div>
+            </div>
+            <div class="p-2 rounded-xl bg-black/40 border border-[#e6b94d]/20">
+              <span class="text-neutral-400 text-[10px]">VIP 2 (Nạp ≥ 300k):</span>
+              <div class="font-bold text-[#f5d77f]">10.000 đ/ngày</div>
+            </div>
+            <div class="p-2 rounded-xl bg-black/40 border border-[#e6b94d]/20">
+              <span class="text-neutral-400 text-[10px]">VIP 3 (Nạp ≥ 800k):</span>
+              <div class="font-bold text-[#f5d77f]">50.000 đ/ngày</div>
+            </div>
+            <div class="p-2 rounded-xl bg-black/40 border border-[#e6b94d]/20">
+              <span class="text-neutral-400 text-[10px]">VIP 4 (Nạp ≥ 1.5tr):</span>
+              <div class="font-bold text-[#f5d77f]">70.000 đ/ngày</div>
+            </div>
+            <div class="p-2 rounded-xl col-span-2 bg-black/40 border border-[#e6b94d]/20 flex justify-between items-center">
+              <span class="text-neutral-400 text-[10px]">VIP 5 (Nạp ≥ 5.0tr):</span>
+              <span class="font-black text-[#ffd700]">150.000 đ/ngày</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="gold-box rounded-2xl p-3.5 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-black text-[#f5d77f] uppercase">🎟️ VOUCHER ƯU ĐÃI CỦA TÔI</span>
+            <span class="text-[9px] text-neutral-400">Áp dụng khi nạp tiền</span>
+          </div>
+          <div id="myVouchersList"></div>
+        </div>
+
+        <div class="gold-box rounded-2xl p-3.5 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-black text-[#f5d77f] uppercase">📜 LỊCH SỬ BIẾN ĐỘNG SỐ DƯ</span>
+            <span class="text-[9px] text-neutral-400">Tất cả giao dịch</span>
+          </div>
+          <div id="txHistoryList"></div>
+        </div>
+
+        <div class="gold-box rounded-2xl p-3.5 space-y-2">
+          <div class="text-[10px] font-bold text-neutral-400 uppercase">HỖ TRỢ & CSKH</div>
+          <a href="https://t.me/luxeglowcgmp" target="_blank" class="flex items-center justify-center space-x-2 py-2.5 rounded-xl bg-blue-900/40 border border-blue-500/40 text-blue-300 text-xs font-semibold active:scale-95 transition-transform">
+            <span>💬 Nhóm Telegram</span>
+          </a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ================= THANH MENU 5 NÚT BẤM DƯỚI ĐÁY CỐ ĐỊNH ================= -->
+    <nav id="bottomNavContainer">
+      <button id="nav-home" onclick="switchTab('home')" class="nav-btn" style="color: #ffd700; font-weight: bold;">
+        <span style="font-size: 20px; line-height: 1;">🏠</span>
+        <span style="font-size: 10px; margin-top: 2px;">Trang Chủ</span>
+      </button>
+      <button id="nav-packages" onclick="switchTab('packages')" class="nav-btn" style="color: #777777;">
+        <span style="font-size: 20px; line-height: 1;">💎</span>
+        <span style="font-size: 10px; margin-top: 2px;">Sản Phẩm ĐT</span>
+      </button>
+      <button id="nav-welfare" onclick="switchTab('welfare')" class="nav-btn" style="color: #777777;">
+        <span style="font-size: 20px; line-height: 1;">🎁</span>
+        <span style="font-size: 10px; margin-top: 2px;">Phúc Lợi</span>
+      </button>
+      <button id="nav-team" onclick="switchTab('team')" class="nav-btn" style="color: #777777;">
+        <span style="font-size: 20px; line-height: 1;">👥</span>
+        <span style="font-size: 10px; margin-top: 2px;">Đội Nhóm</span>
+      </button>
+      <button id="nav-me" onclick="switchTab('me')" class="nav-btn" style="color: #777777;">
+        <span style="font-size: 20px; line-height: 1;">👤</span>
+        <span style="font-size: 10px; margin-top: 2px;">Tôi</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <!-- POPUP ĐĂNG KÝ / ĐĂNG NHẬP -->
+  <div id="authModalOverlay" class="auth-overlay hidden">
+    <div class="w-full max-w-sm gold-box rounded-3xl p-5 space-y-3.5 shadow-2xl">
+      <div class="text-center space-y-1">
+        <div class="font-luxury font-black text-lg gold-text">LUXEGLOW</div>
+        <div class="text-[9px] text-[#aa771c] font-bold uppercase">cGMP CAPITAL VIETNAM</div>
+      </div>
+      <div class="flex space-x-2 p-1 rounded-xl bg-black/60 border border-[#e6b94d]/20">
+        <button id="btnAuthTabReg" onclick="switchAuthTab('register')" class="flex-1 py-1.5 rounded-lg text-xs font-bold btn-gold">Đăng Ký</button>
+        <button id="btnAuthTabLog" onclick="switchAuthTab('login')" class="flex-1 py-1.5 rounded-lg text-xs font-bold text-neutral-400 bg-black/40">Đăng Nhập</button>
+      </div>
+
+      <div id="formRegister" class="space-y-2.5">
+        <div>
+          <label class="text-[10px] text-neutral-400 block mb-0.5">Số Điện Thoại:</label>
+          <input id="regPhone" type="tel" maxlength="10" placeholder="0988888888" class="w-full bg-black/60 border border-[#e6b94d]/40 rounded-xl px-3 py-1.5 text-xs text-white" />
+        </div>
+        <div>
+          <label class="text-[10px] text-neutral-400 block mb-0.5">Mật Khẩu:</label>
+          <input id="regPass" type="password" placeholder="Tối thiểu 6 ký tự" class="w-full bg-black/60 border border-[#e6b94d]/40 rounded-xl px-3 py-1.5 text-xs text-white" />
+        </div>
+        <div>
+          <label class="text-[10px] text-neutral-400 block mb-0.5">Xác Nhận Mật Khẩu:</label>
+          <input id="regPassConfirm" type="password" placeholder="Nhập lại mật khẩu" class="w-full bg-black/60 border border-[#e6b94d]/40 rounded-xl px-3 py-1.5 text-xs text-white" />
+        </div>
+        <div>
+          <label class="text-[10px] text-neutral-400 block mb-0.5">Mã Giới Thiệu (Nếu có):</label>
+          <input id="regInvite" type="text" placeholder="SĐT người mời" class="w-full bg-black/60 border border-[#e6b94d]/40 rounded-xl px-3 py-1.5 text-xs text-white" />
+        </div>
+        <div>
+          <label class="text-[10px] text-neutral-400 block mb-0.5">Captcha:</label>
+          <div class="flex items-center space-x-2">
+            <input id="regCaptcha" type="text" maxlength="4" placeholder="Nhập mã" class="flex-1 bg-black/60 border border-[#e6b94d]/40 rounded-xl px-3 py-1.5 text-xs text-white uppercase" />
+            <div onclick="generateCaptcha()" class="px-2.5 py-1.5 rounded-xl bg-neutral-900 border border-[#e6b94d]/40 cursor-pointer">
+              <span id="captchaRegDisplay" class="font-mono text-sm font-extrabold text-[#ffd700]">1234</span>
+            </div>
+          </div>
+        </div>
+        <button onclick="handleRegister()" class="w-full btn-gold py-2 rounded-xl font-black text-xs uppercase mt-1">Đăng Ký Mới</button>
+      </div>
+
+      <div id="formLogin" class="space-y-2.5 hidden">
+        <div>
+          <label class="text-[10px] text-neutral-400 block mb-0.5">Số Điện Thoại:</label>
+          <input id="logPhone" type="tel" maxlength="10" placeholder="0988888888" class="w-full bg-black/60 border border-[#e6b94d]/40 rounded-xl px-3 py-1.5 text-xs text-white" />
+        </div>
+        <div>
+          <label class="text-[10px] text-neutral-400 block mb-0.5">Mật Khẩu:</label>
+          <input id="logPass" type="password" placeholder="Nhập mật khẩu" class="w-full bg-black/60 border border-[#e6b94d]/40 rounded-xl px-3 py-1.5 text-xs text-white" />
+        </div>
+        <div>
+          <label class="text-[10px] text-neutral-400 block mb-0.5">Captcha:</label>
+          <div class="flex items-center space-x-2">
+            <input id="logCaptcha" type="text" maxlength="4" placeholder="Nhập mã" class="flex-1 bg-black/60 border border-[#e6b94d]/40 rounded-xl px-3 py-1.5 text-xs text-white uppercase" />
+            <div onclick="generateCaptcha()" class="px-2.5 py-1.5 rounded-xl bg-neutral-900 border border-[#e6b94d]/40 cursor-pointer">
+              <span id="captchaLoginDisplay" class="font-mono text-sm font-extrabold text-[#ffd700]">1234</span>
+            </div>
+          </div>
+        </div>
+        <button onclick="handleLogin()" class="w-full btn-gold py-2 rounded-xl font-black text-xs uppercase mt-1">Đăng Nhập</button>
+      </div>
+      <div class="text-center">
+        <button onclick="hideAuthModal()" class="text-[11px] text-neutral-500 underline">Đóng cửa sổ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- POPUP THỂ LỆ F1 NGÀY -->
+  <div id="modalDailyRules" class="modal-overlay">
+    <div class="w-full max-w-sm gold-box rounded-3xl p-5 space-y-3 max-h-[85vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-[#e6b94d]/20 pb-2">
+        <span class="font-bold text-sm text-[#ffd700]">Thể Lệ Nhiệm Vụ F1 Ngày</span>
+        <button onclick="closeModal('modalDailyRules')" class="text-xl text-neutral-400">&times;</button>
+      </div>
+      <div class="space-y-2 text-xs text-neutral-300 leading-relaxed">
+        <p>• <b>Chu kỳ tính thưởng:</b> Từ 00:00:00 đến 23:59:59 hàng ngày theo múi giờ chuẩn Việt Nam (UTC+7).</p>
+        <p>• <b>Điều kiện hợp lệ:</b> Chỉ tính các thành viên F1 do bạn trực tiếp giới thiệu đăng ký và nạp tiền thành công trong ngày hôm đó.</p>
+        <p>• <b>Thời gian chốt:</b> Đúng 23h59p59s hàng ngày, hệ thống tự động kết chuyển tiền thưởng theo mốc cao nhất bạn đạt được thẳng vào số dư khả dụng.</p>
+        <p>• <b>Reset chu kỳ:</b> Sang 00h00 ngày hôm sau, số lượng F1 được reset về 0 để bạn bắt đầu chu kỳ mời mới.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- POPUP THỂ LỆ LƯƠNG TUẦN -->
+  <div id="modalWeeklyRules" class="modal-overlay">
+    <div class="w-full max-w-sm gold-box rounded-3xl p-5 space-y-3 max-h-[85vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-[#e6b94d]/20 pb-2">
+        <span class="font-bold text-sm text-[#ffd700]">Thể Lệ Bảng Lương Tuần</span>
+        <button onclick="closeModal('modalWeeklyRules')" class="text-xl text-neutral-400">&times;</button>
+      </div>
+      <div class="space-y-2 text-xs text-neutral-300 leading-relaxed">
+        <p>• <b>Chu kỳ tuần:</b> Từ 00:00 Thứ 2 đến 23:59:59 Chủ Nhật hàng tuần theo múi giờ Việt Nam.</p>
+        <p>• <b>Cách tính thành viên:</b> Tổng cộng tất cả thành viên cả tuyến F1 (trực tiếp) và tuyến F2 (gián tiếp) nạp tiền trong tuần.</p>
+        <p>• <b>Thời gian chốt:</b> Vào đúng 23h59p59s Chủ Nhật, mức lương tuần tương ứng sẽ được cộng thẳng vào số dư của bạn.</p>
+        <p>• <b>Reset chu kỳ:</b> Sang 00h00 Thứ 2, bộ đếm thành viên sẽ reset về 0 để tính cho tuần tiếp theo.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- POPUP PHÁP LÝ & VỀ ỨNG DỤNG -->
+  <div id="modalLegalInfo" class="modal-overlay">
+    <div class="w-full max-w-sm gold-box rounded-3xl p-5 space-y-3 max-h-[85vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-[#e6b94d]/20 pb-2">
+        <span class="font-bold text-sm text-[#ffd700]">Pháp Lý & Chuẩn cGMP</span>
+        <button onclick="closeModal('modalLegalInfo')" class="text-xl text-neutral-400">&times;</button>
+      </div>
+      <div class="space-y-2.5 text-xs text-neutral-300 leading-relaxed">
+        <p>• <b>Chứng nhận cGMP ASEAN:</b> Quy trình sản xuất mỹ phẩm được kiểm định nghiêm ngặt theo tiêu chuẩn của Hiệp hội các quốc gia Đông Nam Á.</p>
+        <p>• <b>Cam kết lợi nhuận:</b> Hoàn vốn & lãi 13.0%/ngày trong 90 ngày được bảo chứng bởi chuỗi cung ứng vật tư nguyên liệu và hoạt động phân phối dược mỹ phẩm thực tế.</p>
+        <p>• <b>Thanh khoản 24/7:</b> Hỗ trợ rút tiền về tất cả các ngân hàng Việt Nam, MoMo và đổi Thẻ Cào với phí chỉ 7%.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- POPUP NẠP TIỀN ĐA KÊNH -->
+  <div id="modalDeposit" class="modal-overlay">
+    <div class="w-full max-w-sm gold-box rounded-3xl p-5 space-y-3.5 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-[#e6b94d]/20 pb-2">
+        <span class="font-bold text-sm text-white">💳 Nạp Tiền Vào Ví</span>
+        <button onclick="closeModal('modalDeposit')" class="text-lg text-neutral-400">&times;</button>
+      </div>
+
+      <div class="flex space-x-1.5 p-1 rounded-xl bg-black/60 border border-[#e6b94d]/20">
+        <button id="btnDepTabQR" onclick="switchDepositTab('qr')" class="flex-1 py-1.5 rounded-lg text-xs font-bold btn-gold">Ngân Hàng QR</button>
+        <button id="btnDepTabCard" onclick="switchDepositTab('card')" class="flex-1 py-1.5 rounded-lg text-xs font-bold text-neutral-400 bg-black/40 border border-[#e6b94d]/20">Thẻ Cào (Phí 15%)</button>
+        <button id="btnDepTabHist" onclick="switchDepositTab('history')" class="flex-1 py-1.5 rounded-lg text-xs font-bold text-neutral-400 bg-black/40 border border-[#e6b94d]/20">Lịch Sử</button>
+      </div>
+
+      <div id="subDepositQR" class="space-y-3">
+        <div>
+          <label class="text-[10px] text-neutral-400 block mb-1">Số Tiền Nạp (Tối thiểu 50.000 đ):</label>
+          <input id="depBankAmount" type="number" placeholder="150000" class="w-full bg-black/60 border border-[#e6b94d]/40 rounded-xl px-3 py-2 text-xs text-white" />
+        </div>
+        <div>
+          <label class="text-[10px] text-neutral-400 block mb-1">Chọn Voucher Ưu Đãi:</label>
+          <select id="depVoucherSelect" class="w-full bg-black/60 border border-[#e6b94d]/40 rounded-xl px-3 py-2 text-xs text-white">
+            <option value="NONE">Không sử dụng ưu đãi</option>
+          </select>
+        </div>
+        <button onclick="generateBankQR()" class="w-full btn-gold py-2 rounded-xl font-black text-xs uppercase">Tạo QR Thanh Toán</button>
+        <div id="bankQrDisplay" class="hidden pt-2"></div>
+      </div>
+
+      <div id="subDepositCard" class="space-y-3 hidden">
+        <div class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-[11px] text-amber-200">
+          ⚡ <b>Nạp thẻ cào tự động:</b> Phí gạch thẻ 15% (Ví dụ nạp thẻ 100k, thực nhận 85k vào ví).
+        </div>
+        <div>
+          <label class="text-[10px] text-neutral-400 block mb-1">Chọn Nhà Mạng:</label>
+          <select id="cardTelco" class="w-full bg-black/60 border border-[#e6b94d]/40 rounded-xl px-3 py-2 text-xs text-white">
+            <option value="VIETTEL">Viettel</option>
+            <option value="VINAPHONE">VinaPhone</option>
+            <option value="MOBIFONE">MobiFone</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-[10px] text-neutral-400 block mb-1">Mệnh Giá Thẻ:</label>
+          <select id="cardAmount" class="w-full bg-black/60 border border-[#e6b94d]/40 rounded-xl px-3 py-2 text-xs text-white">
+            <option value="50000">50.000 đ (Nhận 42.500 đ)</option>
+            <option value="100000" selected>100.000 đ (Nhận 85.000 đ)</option>
+            <option value="200000">200.000 đ (Nhận 170.000 đ)</option>
+            <option value="300000">300.000 đ (Nhận 255.000 đ)</option>
+            <option value="500000">500.000 đ (Nhận 425.000 đ)</option>
+            <option value="1000000">1.000.000 đ (Nhận 850.000 đ)</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-[10px] text-neutral-400 block mb-0.5">Mã Thẻ (Mã PIN):</label>
+          <input id="cardPin" type="text" placeholder="Nhập mã cào dưới lớp tráng bạc" class="w-full bg-black/60 border border-[#e6b94d]/40 rounded-xl px-3 py-2 text-xs text-white font-mono" />
+        </div>
+        <div>
+          <label class="text-[10px] text-neutral-400 block mb-0.5">Số Seri Thẻ:</label>
+          <input id="cardSerial" type="text" placeholder="Nhập dãy số seri trên thẻ" class="w-full bg-black/60 border border-[#e6b94d]/40 rounded-xl px-3 py-2 text-xs text-white font-mono" />
+        </div>
+        <button onclick="handleCardDeposit()" class="w-full btn-gold py-2.5 rounded-xl font-black text-xs uppercase">
+          Xác Nhận Nạp Thẻ Cào
+        </button>
+      </div>
+
+      <div id="subDepositHist" class="space-y-2 hidden">
+        <div id="depositHistList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- POPUP RÚT TIỀN ĐA KÊNH -->
+  <div id="modalWithdraw" class="modal-overlay">
+    <div class="w-full max-w-sm gold-box rounded-3xl p-5 space-y-3.5 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-[#e6b94d]/20 pb-2">
+        <span class="font-bold text-sm text-white">🏦 Rút Tiền Về Tài Khoản</span>
+        <button onclick="closeModal('modalWithdraw')" class="text-lg text-neutral-400">&times;</button>
+      </div>
+
+      <div class="flex space-x-2 p-1 rounded-xl bg-black/60 border border-[#e6b94d]/20">
+        <button id="btnWithTabForm" onclick="switchWithdrawTab('form')" class="flex-1 py-1.5 rounded-lg text-xs font-bold btn-gold">Lệnh Rút Mới</button>
+        <button id="btnWithTabHist" onclick="switchWithdrawTab('hist')" class="flex-1 py-1.5 rounded-lg text-xs font-bold text-neutral-400 bg-black/40 border border-[#e6b94d]/20">Lịch Sử Rút</button>
+      </div>
+
+      <div id="subWithdrawForm" class="space-y-3">
+        <div class="p-2.5 rounded-xl bg-black/50 border border-[#e6b94d]/25 text-[11px] space-y-1 text-neutral-300">
+          <div class="flex items-center space-x-1.5 text-[#ffd700] font-bold">
+            <span>⏰</span><span>Quy Định Rút Tiền:</span>
+          </div>
+          <p>• Thời gian rút tiền: <b>07:00 - 22:00</b> hàng ngày.</p>
+          <p>• Điều kiện: <b>Đã kích hoạt ít nhất 1 gói đầu tư</b>.</p>
+          <p>• Phí rút tiền: <b>7%</b> · Tối thiểu 30.000 đ/lệnh.</p>
+        </div>
+
+        <div>
+          <label class="text-[10px] text-neutral-400 block mb-1">Phương Thức Rút:</label>
+          <div class="flex space-x-1 p-1 rounded-xl bg-black/60 border border-[#e6b94d]/20">
+            <button id="btnWithChBank" onclick="switchWithdrawChannel('bank')" class="flex-1 py-1 rounded-lg text-[11px] font-bold btn-gold">Ngân Hàng</button>
+            <button id="btnWithChMomo" onclick="switchWithdrawChannel('momo')" class="flex-1 py-1 rounded-lg text-[11px] font-bold text-neutral-400 bg-black/40 border border-[#e6b94d]/20">Ví Điện Tử</button>
+            <button id="btnWithChCard" onclick="switchWithdrawChannel('card')" class="flex-1 py-1 rounded-lg text-[11px] font-bold text-neutral-400 bg-black/40 border border-[#e6b94d]/20">Đổi Thẻ Cào</button>
+          </div>
+        </div>
+
+        <div id="withFieldsBank" class="space-y-2.5">
+          <div>
+            <label class="text-[10px] text-neutral-400 block mb-0.5">Chọn Ngân Hàng:</label>
+            <select id="withBankName" class="w-full bg-black/60 border border-[#e6b94d]/40 rounded-xl px-3 py-1.5 text-xs text-white">
+              <option value="MB BANK">MB Bank (Quân Đội)</option>
+              <option value="VIETCOMBANK">Vietcombank</option>
+              <option value="TECHCOMBANK">Techcombank</option>
+              <option value="VIETINBANK">VietinBank</option>
+              <option value="BIDV">BIDV</option>
+              <option value="ACB">ACB</option>
+              <option value="TPBANK">TPBank</option>
+              <option value="VPBANK">VPBank</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-[10px] text-neutral-400 block mb-0.5">Số Tài Khoản:</label>
+            <input id="withBankAcc" type="text" placeholder="Nhập số tài khoản ngân hàng" class="w-full bg-black/60 border border-[#e6b94d]/40 rounded-xl px-3 py-1.5 text-xs text-white font-mono" />
+          </div>
+          <div>
+            <label class="text-[10px] text-neutral-400 block mb-0.5">Họ Và Tên Chủ Thẻ:</label>
+            <input id="withBankUser" type="text" placeholder="NGUYEN VAN A (Không dấu)" class="w-full bg-black/60 border border-[#e6b94d]/40 rounded-xl px-3 py-1.5 text-xs text-white uppercase" />
+          </div>
+        </div>
+
+        <div id="withFieldsMomo" class="space-y-2.5 hidden">
+          <div>
+            <label class="text-[10px] text-neutral-400 block mb-0.5">Loại Ví Điện Tử:</label>
+            <select id="withMomoType" class="w-full bg-black/60 border border-[#e6b94d]/40 rounded-xl px-3 py-1.5 text-xs text-white">
+              <option value="Ví MoMo">Ví MoMo</option>
+              <option value="Ví ZaloPay">Ví ZaloPay</option>
+              <option value="Viettel Money">Viettel Money</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-[10px] text-neutral-400 block mb-0.5">Số Điện Thoại Ví:</label>
+            <input id="withMomoPhone" type="tel" placeholder="0988888888" class="w-full bg-black/60 border border-[#e6b94d]/40 rounded-xl px-3 py-1.5 text-xs text-white font-mono" />
+          </div>
+          <div>
+            <label class="text-[10px] text-neutral-400 block mb-0.5">Tên Đăng Ký Ví:</label>
+            <input id="withMomoName" type="text" placeholder="NGUYEN VAN A" class="w-full bg-black/60 border border-[#e6b94d]/40 rounded-xl px-3 py-1.5 text-xs text-white uppercase" />
+          </div>
+        </div>
+
+        <div id="withFieldsCard" class="space-y-2.5 hidden">
+          <div>
+            <label class="text-[10px] text-neutral-400 block mb-0.5">Loại Thẻ Cào Cần Nhận:</label>
+            <select id="withCardTelco" class="w-full bg-black/60 border border-[#e6b94d]/40 rounded-xl px-3 py-1.5 text-xs text-white">
+              <option value="Viettel">Thẻ Viettel</option>
+              <option value="VinaPhone">Thẻ VinaPhone</option>
+              <option value="MobiFone">Thẻ MobiFone</option>
+            </select>
+          </div>
+          <div class="p-2 rounded-xl bg-black/40 border border-[#e6b94d]/20 text-[10px] text-neutral-400">
+            Hệ thống sẽ gửi Mã thẻ & Số Seri vào phần Lịch sử rút sau khi được duyệt.
+          </div>
+        </div>
+
+        <div>
+          <label class="text-[10px] text-neutral-400 block mb-0.5">Số Tiền Rút (Tối thiểu 30.000 đ · Phí 7%):</label>
+          <input id="withAmount" type="number" placeholder="Nhập số tiền cần rút" class="w-full bg-black/60 border border-[#e6b94d]/40 rounded-xl px-3 py-1.5 text-xs text-white" />
+        </div>
+
+        <button onclick="handleWithdraw()" class="w-full btn-gold py-2 rounded-xl font-black text-xs uppercase mt-1">Xác Nhận Rút Tiền</button>
+      </div>
+
+      <div id="subWithdrawHist" class="space-y-2 hidden">
+        <div id="withdrawHistList"></div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
